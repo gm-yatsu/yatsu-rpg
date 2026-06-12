@@ -201,6 +201,7 @@ async function resetPlayer(id) {
       certificateRank: "",
       certificateDate: "",
       currentStage: "",
+      resetVersion:　firebase.firestore.FieldValue.increment(1),
       resetAt: firebase.firestore.FieldValue.serverTimestamp(),
       resetBy: auth.currentUser.email,
       updatedAt: firebase.firestore.FieldValue.serverTimestamp()
