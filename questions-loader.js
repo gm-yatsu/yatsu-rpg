@@ -1,11 +1,9 @@
 (() => {
-  const DEFAULT_STAGE_IDS = ["slime", "goblin", "ghost", "food", "boss"];
-
   if (
     typeof firebase === "undefined" ||
     typeof FIREBASE_CONFIG === "undefined"
   ) {
-    console.warn("問題データ連携: Firebase未読込");
+    console.error("Firebaseが読み込まれていません。");
     return;
   }
 
@@ -16,58 +14,106 @@
   const auth = firebase.auth();
   const db = firebase.firestore();
 
-  function applyQuestionDocs(snapshot) {
-    const byStage = {};
+  let questionData = {};
 
-    snapshot.forEach(doc => {
-      const data = doc.data();
-      if (
-        data &&
-        data.enabled !== false &&
-        Array.isArray(data.questions) &&
-        data.questions.length
-      ) {
-        byStage[doc.id] = data.questions;
-      }
-    });
+  function normalizeQuestions(list) {
+    if (!Array.isArray(list)) {
+      return [];
+    }
 
-    if (typeof stages === "undefined" || !Array.isArray(stages)) {
-      console.error("問題データ連携: stagesが見つかりません");
+    return list
+      .filter(question =>
+        question &&
+        typeof question.text === "string" &&
+        Array.isArray(question.choices) &&
+        question.choices.length >= 2 &&
+        Number.isInteger(question.correctIndex)
+      )
+      .map(question => [
+        question.text,
+        question.choices.map(String),
+        question.correctIndex
+      ]);
+  }
+
+  function applyQuestions() {
+    if (
+      typeof stages === "undefined" ||
+      !Array.isArray(stages)
+    ) {
+      console.error("stagesが見つかりません。");
       return;
     }
 
-    stages.forEach(stage => {
-      const questions = byStage[stage.id];
-      if (!questions) return;
+    const difficulty =
+      typeof state !== "undefined" &&
+      state.difficulty === "adult"
+        ? "adult"
+        : "kids";
 
-      stage.q = questions
-        .filter(q =>
-          q &&
-          typeof q.text === "string" &&
-          Array.isArray(q.choices) &&
-          q.choices.length >= 2 &&
-          Number.isInteger(q.correctIndex) &&
-          q.correctIndex >= 0 &&
-          q.correctIndex < q.choices.length
-        )
-        .map(q => [
-          q.text,
-          q.choices.map(String),
-          q.correctIndex
-        ]);
+    const field =
+      difficulty === "adult"
+        ? "adultQuestions"
+        : "kidsQuestions";
+
+    stages.forEach(stage => {
+      const data = questionData[stage.id];
+
+      if (!data || data.enabled === false) {
+        return;
+      }
+
+      const questions =
+        normalizeQuestions(data[field]);
+
+      if (questions.length > 0) {
+        stage.q = questions;
+      }
     });
 
-    console.log("Firestore問題データを反映しました");
-    window.dispatchEvent(new CustomEvent("questions-loaded"));
+    console.log(
+      difficulty + "用の問題を反映しました。"
+    );
   }
 
   auth.onAuthStateChanged(user => {
-    if (!user) return;
+    if (!user) {
+      return;
+    }
 
-    db.collection("questions")
-      .onSnapshot(
-        applyQuestionDocs,
-        error => console.error("問題データ読込失敗:", error)
-      );
+    db.collection("questions").onSnapshot(
+      snapshot => {
+        questionData = {};
+
+        snapshot.forEach(doc => {
+          questionData[doc.id] = doc.data();
+        });
+
+        applyQuestions();
+      },
+      error => {
+        console.error(
+          "問題データ読込失敗:",
+          error
+        );
+      }
+    );
   });
+
+  const startButton =
+    document.getElementById("startBtn");
+
+  if (startButton) {
+    startButton.addEventListener(
+      "click",
+      () => {
+        setTimeout(applyQuestions, 0);
+      }
+    );
+  }
+
+  window.addEventListener(
+    "questions-refresh",
+    applyQuestions
+  );
 })();
