@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>八ヶ岳RPG スタッフメニュー</title>
+<style>
+*{box-sizing:border-box}
+body{
+  margin:0;
+  min-height:100vh;
+  background:linear-gradient(160deg,#183c29,#0d1d14);
+  color:#fff;
+  font-family:system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+main{max-width:940px;margin:auto;padding:28px 20px}
+header{text-align:center;padding:32px 0}
+header h1{font-size:clamp(30px,7vw,48px);margin:8px 0}
+header p{color:#cfdbd2;line-height:1.7}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.card{
+  display:block;
+  min-height:220px;
+  padding:24px;
+  border:1px solid rgba(255,255,255,.16);
+  border-radius:20px;
+  background:rgba(255,255,255,.09);
+  color:#fff;
+  text-decoration:none;
+  box-shadow:0 14px 35px rgba(0,0,0,.22);
+  transition:.2s;
+}
+.card:hover{transform:translateY(-4px);background:rgba(255,255,255,.13)}
+.icon{font-size:48px}.card h2{margin:15px 0 8px}.card p{color:#d2ddd5;line-height:1.65}
+.status{
+  margin-top:20px;
+  padding:16px;
+  border-radius:14px;
+  background:rgba(0,0,0,.22);
+  color:#dce5de;
+}
+.back{
+  display:inline-block;
+  margin-top:18px;
+  color:#f0d274;
+}
+@media(max-width:760px){.grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<main>
+<header>
+<div>STAFF PORTAL</div>
+<h1>八ヶ岳RPG<br>スタッフメニュー</h1>
+<p>進捗確認・問題編集・利用分析を、ここから開けます。</p>
+</header>
+
+<section class="grid">
+<a class="card" href="admin.html">
+  <div class="icon">👥</div>
+  <h2>プレイヤー進捗</h2>
+  <p>登録者数、クリア人数、HP、クリスタル、認定コードを確認します。</p>
+</a>
+
+<a class="card" href="question-admin.html">
+  <div class="icon">📝</div>
+  <h2>問題管理</h2>
+  <p>ステージ・難易度ごとに、問題文、選択肢、正解を編集します。</p>
+</a>
+
+<a class="card" href="analytics.html">
+  <div class="icon">📊</div>
+  <h2>分析ダッシュボード</h2>
+  <p>問題別正答率、挑戦数、クリア率、平均クリア時間を確認します。</p>
+</a>
+</section>
+
+<div class="status">
+  <b>運用上の注意</b><br>
+  管理画面は、Firebaseに登録した管理者Googleアカウントでログインしてください。
+</div>
+
+<a class="back" href="./">← ゲーム画面へ戻る</a>
+</main>
+</body>
+</html>
