@@ -106,6 +106,7 @@ auth.onAuthStateChanged(user=>{
   $("loginBtn").hidden=true;$("logoutBtn").hidden=false;$("dashboard").hidden=false;setMessage(user.email+" でログイン中","good");
   db.collection("gameEvents").onSnapshot(s=>{events=s.docs.map(d=>({id:d.id,...d.data()}));render()},e=>setMessage("データ読込エラー："+e.message,"bad"));
 });
+<script src="analytics-eight-patch.js"></script>
 </script>
 </body>
 </html>
