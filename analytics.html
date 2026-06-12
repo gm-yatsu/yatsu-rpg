@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>八ヶ岳RPG 分析ダッシュボード</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#f3f5f3;color:#213027;font-family:system-ui,-apple-system,"Segoe UI",sans-serif}
+main{max-width:1200px;margin:auto;padding:24px}header{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap}
+button,select{font:inherit}button{border:0;border-radius:10px;padding:11px 15px;font-weight:800;cursor:pointer}
+.primary{background:#1d6940;color:white}.secondary{background:#e3e9e4}
+.filters{display:flex;gap:12px;flex-wrap:wrap;align-items:end;margin-top:16px}
+label{font-weight:800}select{display:block;margin-top:6px;padding:9px;border:1px solid #cad3cc;border-radius:9px}
+.cards{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin:20px 0}.card{background:white;border-radius:14px;padding:18px;box-shadow:0 6px 18px rgba(0,0,0,.06)}
+.card strong{display:block;font-size:28px;margin-top:6px}.panel{background:white;border-radius:14px;padding:18px;margin-top:18px;box-shadow:0 6px 18px rgba(0,0,0,.06)}
+.table-wrap{overflow:auto}table{width:100%;border-collapse:collapse;min-width:760px}th,td{padding:11px;border-bottom:1px solid #e7ece8;text-align:left;font-size:14px}
+th{background:#eef3ef;position:sticky;top:0}.good{color:#176637;font-weight:800}.warn{color:#9b5c00;font-weight:800}.bad{color:#a12f2f;font-weight:800}
+#message{margin-top:12px;font-weight:800}@media(max-width:900px){.cards{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+<main>
+<header>
+<div><h1>八ヶ岳RPG 分析ダッシュボード</h1><p>問題別正答率、ステージ挑戦数、クリア率を確認します。</p></div>
+<div><button id="loginBtn" class="primary">Googleで管理者ログイン</button><button id="logoutBtn" class="secondary" hidden>ログアウト</button></div>
+</header>
+<div id="message">管理者ログインが必要です。</div>
+
+<section id="dashboard" hidden>
+<div class="filters">
+<label>難易度
+<select id="difficultyFilter">
+<option value="all">すべて</option><option value="kids">キッズ勇者</option><option value="adult">大人勇者</option>
+</select></label>
+<label>ステージ
+<select id="stageFilter">
+<option value="all">すべて</option><option value="slime">森のスライム</option><option value="goblin">ドリフトゴブリン</option>
+<option value="ghost">湯けむりゴースト</option><option value="food">フードロスモンスター</option><option value="boss">闇の魔王ノクス</option>
+</select></label>
+</div>
+
+<div class="cards">
+<div class="card">挑戦回数<strong id="stageStarts">0</strong></div>
+<div class="card">回答数<strong id="answers">0</strong></div>
+<div class="card">正解数<strong id="correctAnswers">0</strong></div>
+<div class="card">正答率<strong id="accuracy">0%</strong></div>
+<div class="card">クリア数<strong id="stageClears">0</strong></div>
+</div>
+
+<div class="panel"><h2>問題別正答率</h2><div class="table-wrap"><table>
+<thead><tr><th>ステージ</th><th>難易度</th><th>問題</th><th>回答数</th><th>正解数</th><th>正答率</th></tr></thead>
+<tbody id="questionRows"></tbody></table></div></div>
+
+<div class="panel"><h2>ステージ別実績</h2><div class="table-wrap"><table>
+<thead><tr><th>ステージ</th><th>挑戦数</th><th>クリア数</th><th>クリア率</th><th>平均クリア時間</th></tr></thead>
+<tbody id="stageRows"></tbody></table></div></div>
+</section>
+</main>
+
+<script src="https://www.gstatic.com/firebasejs/11.10.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/11.10.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script>
+if (!firebase.apps.length) firebase.initializeApp(FIREBASE_CONFIG);
+const auth=firebase.auth(),db=firebase.firestore(),provider=new firebase.auth.GoogleAuthProvider(),$=id=>document.getElementById(id);
+const stageNames={slime:"森のスライム",goblin:"ドリフトゴブリン",ghost:"湯けむりゴースト",food:"フードロスモンスター",boss:"闇の魔王ノクス"};
+let events=[];
+
+function setMessage(text,cls=""){$("message").textContent=text;$("message").className=cls}
+function escapeHtml(v){return String(v).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]))}
+function rateClass(r){return r>=80?"good":r>=60?"warn":"bad"}
+function filtered(){const d=$("difficultyFilter").value,s=$("stageFilter").value;return events.filter(e=>(d==="all"||e.difficulty===d)&&(s==="all"||e.stageId===s))}
+
+function render(){
+  const list=filtered(),starts=list.filter(x=>x.type==="stage_start"),answers=list.filter(x=>x.type==="question_answer"),
+  correct=answers.filter(x=>x.correct===true),clears=list.filter(x=>x.type==="stage_clear");
+  $("stageStarts").textContent=starts.length;$("answers").textContent=answers.length;$("correctAnswers").textContent=correct.length;
+  $("accuracy").textContent=answers.length?Math.round(correct.length/answers.length*100)+"%":"0%";$("stageClears").textContent=clears.length;
+
+  const qm={};
+  answers.forEach(x=>{const k=[x.stageId||"",x.difficulty||"",x.questionText||""].join("||");
+    if(!qm[k])qm[k]={stageId:x.stageId||"",difficulty:x.difficulty||"",questionText:x.questionText||"",answers:0,correct:0};
+    qm[k].answers++;if(x.correct)qm[k].correct++;
+  });
+  $("questionRows").innerHTML=Object.values(qm).sort((a,b)=>(a.correct/a.answers)-(b.correct/b.answers)).map(x=>{
+    const r=x.answers?Math.round(x.correct/x.answers*100):0;
+    return `<tr><td>${stageNames[x.stageId]||x.stageId}</td><td>${x.difficulty==="adult"?"大人":"キッズ"}</td><td>${escapeHtml(x.questionText)}</td><td>${x.answers}</td><td>${x.correct}</td><td class="${rateClass(r)}">${r}%</td></tr>`;
+  }).join("")||'<tr><td colspan="6">回答データがありません。</td></tr>';
+
+  $("stageRows").innerHTML=Object.keys(stageNames).map(id=>{
+    const ss=starts.filter(x=>x.stageId===id),cc=clears.filter(x=>x.stageId===id),r=ss.length?Math.round(cc.length/ss.length*100):0;
+    const ds=cc.map(x=>Number(x.durationSeconds||0)).filter(x=>x>0),avg=ds.length?Math.round(ds.reduce((a,b)=>a+b,0)/ds.length):0;
+    return `<tr><td>${stageNames[id]}</td><td>${ss.length}</td><td>${cc.length}</td><td class="${rateClass(r)}">${r}%</td><td>${avg?avg+"秒":"-"}</td></tr>`;
+  }).join("");
+}
+
+$("loginBtn").onclick=()=>auth.signInWithPopup(provider).catch(e=>setMessage(e.message,"bad"));
+$("logoutBtn").onclick=()=>auth.signOut();$("difficultyFilter").onchange=render;$("stageFilter").onchange=render;
+
+auth.onAuthStateChanged(user=>{
+  if(!user){$("loginBtn").hidden=false;$("logoutBtn").hidden=true;$("dashboard").hidden=true;setMessage("管理者ログインが必要です。");return}
+  if((user.email||"").toLowerCase()!==ADMIN_EMAIL.toLowerCase()){
+    $("loginBtn").hidden=true;$("logoutBtn").hidden=false;$("dashboard").hidden=true;setMessage("このGoogleアカウントには管理権限がありません。","bad");return
+  }
+  $("loginBtn").hidden=true;$("logoutBtn").hidden=false;$("dashboard").hidden=false;setMessage(user.email+" でログイン中","good");
+  db.collection("gameEvents").onSnapshot(s=>{events=s.docs.map(d=>({id:d.id,...d.data()}));render()},e=>setMessage("データ読込エラー："+e.message,"bad"));
+});
+</script>
+</body>
+</html>
