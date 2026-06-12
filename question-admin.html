@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>八ヶ岳RPG 問題管理</title>
+<title>八ヶ岳RPG 難易度別問題管理</title>
 <style>
 *{box-sizing:border-box}
 body{margin:0;background:#f3f5f3;color:#203027;font-family:system-ui,-apple-system,"Segoe UI",sans-serif}
@@ -13,21 +13,26 @@ button,input,select,textarea{font:inherit}
 button{border:0;border-radius:10px;padding:11px 15px;font-weight:800;cursor:pointer}
 .primary{background:#1e6941;color:#fff}.secondary{background:#e3e9e4}.danger{background:#9d3131;color:#fff}
 .panel{background:#fff;border-radius:16px;padding:18px;margin-top:18px;box-shadow:0 7px 22px rgba(0,0,0,.07)}
-.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-label{display:block;font-weight:800}input,select,textarea{width:100%;margin-top:6px;padding:11px;border:1px solid #cad3cc;border-radius:9px}
+.grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+label{display:block;font-weight:800}
+input,select,textarea{width:100%;margin-top:6px;padding:11px;border:1px solid #cad3cc;border-radius:9px}
 textarea{min-height:90px;resize:vertical}
 .question{border:1px solid #dfe6e0;border-radius:13px;padding:15px;margin-top:14px;background:#fbfcfb}
 .question-top{display:flex;justify-content:space-between;align-items:center;gap:10px}
 .choices{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
 .actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
 #message{margin-top:14px;font-weight:800}.ok{color:#176637}.error{color:#a12f2f}
-@media(max-width:700px){.grid,.choices{grid-template-columns:1fr}}
+.note{background:#eef5ef;padding:12px;border-radius:10px;margin-top:14px;font-size:14px}
+@media(max-width:760px){.grid,.choices{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
 <main>
 <header>
-<div><h1>八ヶ岳RPG 問題管理</h1><p>ステージごとの問題を追加・編集します。</p></div>
+<div>
+<h1>八ヶ岳RPG 難易度別問題管理</h1>
+<p>キッズ勇者と大人勇者の問題を分けて編集します。</p>
+</div>
 <div>
 <button id="loginBtn" class="primary">Googleで管理者ログイン</button>
 <button id="logoutBtn" class="secondary" hidden>ログアウト</button>
@@ -47,20 +52,32 @@ textarea{min-height:90px;resize:vertical}
 <option value="boss">闇の魔王ノクス</option>
 </select>
 </label>
+
+<label>難易度
+<select id="difficulty">
+<option value="kids">キッズ勇者</option>
+<option value="adult">大人勇者</option>
+</select>
+</label>
+
 <label>公開状態
 <select id="enabled">
 <option value="true">公開</option>
-<option value="false">非公開（ゲーム内の初期問題を使用）</option>
+<option value="false">非公開</option>
 </select>
 </label>
+</div>
+
+<div class="note">
+保存先は、キッズ勇者が <b>kidsQuestions</b>、大人勇者が <b>adultQuestions</b> です。
 </div>
 
 <div id="questions"></div>
 
 <div class="actions">
 <button id="addBtn" class="secondary">＋ 問題を追加</button>
-<button id="saveBtn" class="primary">このステージを保存</button>
-<button id="seedBtn" class="secondary">初期問題を全ステージ登録</button>
+<button id="saveBtn" class="primary">選択中の難易度を保存</button>
+<button id="seedBtn" class="secondary">難易度別の初期問題を全登録</button>
 </div>
 </section>
 </main>
@@ -78,31 +95,66 @@ const provider = new firebase.auth.GoogleAuthProvider();
 const $ = id => document.getElementById(id);
 
 const defaults = {
-  slime: [
-    {text:"森にいる動物は？",choices:["リス","イルカ","ラクダ"],correctIndex:0},
-    {text:"ごみはどうする？",choices:["持ち帰る","置いていく","川に流す"],correctIndex:0},
-    {text:"木の葉に多い色は？",choices:["みどり","ぎん","くろ"],correctIndex:0}
-  ],
-  goblin: [
-    {text:"運動前にすることは？",choices:["準備体操","全力疾走","寝る"],correctIndex:0},
-    {text:"転んだ人がいたら？",choices:["声をかける","笑う","逃げる"],correctIndex:0},
-    {text:"順番を守るには？",choices:["並ぶ","抜かす","隠れる"],correctIndex:0}
-  ],
-  ghost: [
-    {text:"浴場でしてはいけないことは？",choices:["走る","静かに歩く","体を洗う"],correctIndex:0},
-    {text:"タオルは湯船に？",choices:["入れない","入れる","投げる"],correctIndex:0},
-    {text:"入浴前にすることは？",choices:["体を洗う","走る","食べる"],correctIndex:0}
-  ],
-  food: [
-    {text:"食べられる分だけ取る理由は？",choices:["残さないため","皿を増やすため","遊ぶため"],correctIndex:0},
-    {text:"食事前の言葉は？",choices:["いただきます","おやすみ","さようなら"],correctIndex:0},
-    {text:"食後の言葉は？",choices:["ごちそうさま","こんにちは","いってきます"],correctIndex:0}
-  ],
-  boss: [
-    {text:"仲間と大切なのは？",choices:["助け合う","けんかする","置いていく"],correctIndex:0},
-    {text:"困ったときは？",choices:["スタッフに相談","隠れる","走る"],correctIndex:0},
-    {text:"自然を守るには？",choices:["ごみを持ち帰る","枝を折る","動物を追う"],correctIndex:0}
-  ]
+  slime: {
+    kids: [
+      {text:"森にいる動物は？",choices:["リス","イルカ","ラクダ"],correctIndex:0},
+      {text:"ごみはどうする？",choices:["持ち帰る","置いていく","川に流す"],correctIndex:0},
+      {text:"木の葉に多い色は？",choices:["みどり","ぎん","くろ"],correctIndex:0}
+    ],
+    adult: [
+      {text:"八ヶ岳がまたがる県は？",choices:["山梨県と長野県","東京都と千葉県","大阪府と京都府"],correctIndex:0},
+      {text:"標高が高い場所では一般に気温は？",choices:["低くなる","高くなる","必ず同じ"],correctIndex:0},
+      {text:"森林の役割として適切なのは？",choices:["水を蓄える","地震を止める","海をなくす"],correctIndex:0}
+    ]
+  },
+  goblin: {
+    kids: [
+      {text:"運動前にすることは？",choices:["準備体操","全力疾走","寝る"],correctIndex:0},
+      {text:"転んだ人がいたら？",choices:["声をかける","笑う","逃げる"],correctIndex:0},
+      {text:"順番を守るには？",choices:["並ぶ","抜かす","隠れる"],correctIndex:0}
+    ],
+    adult: [
+      {text:"ウォームアップの主な目的は？",choices:["けがの予防","疲労を増やす","体温を下げる"],correctIndex:0},
+      {text:"安全な動線設計で優先することは？",choices:["交差を減らす","速度を上げる","照明を消す"],correctIndex:0},
+      {text:"運動後に適切な行動は？",choices:["水分補給","無理を続ける","食事を抜く"],correctIndex:0}
+    ]
+  },
+  ghost: {
+    kids: [
+      {text:"浴場でしてはいけないことは？",choices:["走る","静かに歩く","体を洗う"],correctIndex:0},
+      {text:"タオルは湯船に？",choices:["入れない","入れる","投げる"],correctIndex:0},
+      {text:"入浴前にすることは？",choices:["体を洗う","走る","食べる"],correctIndex:0}
+    ],
+    adult: [
+      {text:"浴場で走らない主な理由は？",choices:["転倒防止","湯量確保","照明保護"],correctIndex:0},
+      {text:"かけ湯の目的は？",choices:["湯温に慣らす","床を乾かす","音を消す"],correctIndex:0},
+      {text:"脱衣所へ戻る前に推奨される行動は？",choices:["体を拭く","走る","湯を持つ"],correctIndex:0}
+    ]
+  },
+  food: {
+    kids: [
+      {text:"食べられる分だけ取る理由は？",choices:["残さないため","皿を増やすため","遊ぶため"],correctIndex:0},
+      {text:"食事前の言葉は？",choices:["いただきます","おやすみ","さようなら"],correctIndex:0},
+      {text:"食後の言葉は？",choices:["ごちそうさま","こんにちは","いってきます"],correctIndex:0}
+    ],
+    adult: [
+      {text:"フードロス削減に有効なのは？",choices:["食べられる量だけ取る","皿を増やす","照明を消す"],correctIndex:0},
+      {text:"ビュッフェで衛生上適切なのは？",choices:["共用トングを使う","手で取る","料理を戻す"],correctIndex:0},
+      {text:"食品廃棄削減の効果は？",choices:["コストと環境負荷低減","客室数増加","天候安定"],correctIndex:0}
+    ]
+  },
+  boss: {
+    kids: [
+      {text:"仲間と大切なのは？",choices:["助け合う","けんかする","置いていく"],correctIndex:0},
+      {text:"困ったときは？",choices:["スタッフに相談","隠れる","走る"],correctIndex:0},
+      {text:"自然を守るには？",choices:["ごみを持ち帰る","枝を折る","動物を追う"],correctIndex:0}
+    ],
+    adult: [
+      {text:"安全管理で最優先するのは？",choices:["事故予防","派手さ","距離"],correctIndex:0},
+      {text:"持続可能な観光とは？",choices:["地域・環境・利用者の共存","利用者数だけ増やす","廃棄を増やす"],correctIndex:0},
+      {text:"達成感を高める設計は？",choices:["進捗と報酬を明確化","目的を隠す","操作を複雑化"],correctIndex:0}
+    ]
+  }
 };
 
 let signedInUser = null;
@@ -130,33 +182,40 @@ function createQuestionCard(question={text:"",choices:["","",""],correctIndex:0}
   `;
 
   wrap.querySelector(".qText").value = question.text || "";
-  const choiceBox = wrap.querySelector(".choices");
-  const choices = Array.isArray(question.choices) && question.choices.length
+
+  const choices = Array.isArray(question.choices)
     ? question.choices.slice(0, 4)
     : ["","",""];
 
   while (choices.length < 3) choices.push("");
 
+  const choiceBox = wrap.querySelector(".choices");
+
   choices.forEach((choice, index) => {
     const label = document.createElement("label");
     label.textContent = `選択肢${index + 1}`;
+
     const input = document.createElement("input");
     input.className = "choiceInput";
     input.value = choice;
+
     label.appendChild(input);
     choiceBox.appendChild(label);
   });
 
   const correct = wrap.querySelector(".correctIndex");
+
   choices.forEach((_, index) => {
     const option = document.createElement("option");
     option.value = index;
     option.textContent = `選択肢${index + 1}`;
     correct.appendChild(option);
   });
+
   correct.value = String(Number(question.correctIndex || 0));
 
   wrap.querySelector(".removeBtn").onclick = () => wrap.remove();
+
   $("questions").appendChild(wrap);
 }
 
@@ -166,16 +225,12 @@ function renderQuestions(list) {
 }
 
 function collectQuestions() {
-  return [...document.querySelectorAll(".question")].map(card => {
-    const choices = [...card.querySelectorAll(".choiceInput")]
-      .map(input => input.value.trim());
-
-    return {
-      text: card.querySelector(".qText").value.trim(),
-      choices,
-      correctIndex: Number(card.querySelector(".correctIndex").value)
-    };
-  });
+  return [...document.querySelectorAll(".question")].map(card => ({
+    text: card.querySelector(".qText").value.trim(),
+    choices: [...card.querySelectorAll(".choiceInput")]
+      .map(input => input.value.trim()),
+    correctIndex: Number(card.querySelector(".correctIndex").value)
+  }));
 }
 
 function validateQuestions(list) {
@@ -183,29 +238,54 @@ function validateQuestions(list) {
 
   for (let i = 0; i < list.length; i++) {
     const q = list[i];
-    if (!q.text) return `${i + 1}問目の問題文が空欄です。`;
-    if (q.choices.some(x => !x)) return `${i + 1}問目の選択肢に空欄があります。`;
+
+    if (!q.text) {
+      return `${i + 1}問目の問題文が空欄です。`;
+    }
+
+    if (q.choices.some(x => !x)) {
+      return `${i + 1}問目の選択肢に空欄があります。`;
+    }
+
     if (new Set(q.choices).size !== q.choices.length) {
       return `${i + 1}問目に同じ選択肢があります。`;
     }
   }
+
   return "";
+}
+
+function currentField() {
+  return $("difficulty").value === "adult"
+    ? "adultQuestions"
+    : "kidsQuestions";
 }
 
 async function loadStage() {
   const id = $("stage").value;
+  const difficulty = $("difficulty").value;
+  const field = currentField();
+
   setMessage("読み込み中…");
 
   try {
     const snap = await db.collection("questions").doc(id).get();
+
     if (snap.exists) {
       const data = snap.data();
       $("enabled").value = data.enabled === false ? "false" : "true";
-      renderQuestions(data.questions || []);
+
+      const list =
+        Array.isArray(data[field]) && data[field].length
+          ? data[field]
+          : defaults[id][difficulty];
+
+      renderQuestions(list || []);
     } else {
       $("enabled").value = "true";
-      renderQuestions(defaults[id] || []);
+      renderQuestions(defaults[id][difficulty] || []);
     }
+
     setMessage("編集できます。", "ok");
   } catch (error) {
     setMessage("読込エラー：" + error.message, "error");
@@ -215,40 +295,57 @@ async function loadStage() {
 async function saveStage() {
   const list = collectQuestions();
   const error = validateQuestions(list);
+
   if (error) {
     setMessage(error, "error");
     return;
   }
 
+  const field = currentField();
+
   try {
     await db.collection("questions").doc($("stage").value).set({
       enabled: $("enabled").value === "true",
-      questions: list,
+      [field]: list,
       updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
       updatedBy: signedInUser.email
-    });
-    setMessage("保存しました。ゲームへ自動反映されます。", "ok");
+    }, { merge: true });
+
+    setMessage(
+      $("difficulty").value === "adult"
+        ? "大人勇者の問題を保存しました。"
+        : "キッズ勇者の問題を保存しました。",
+      "ok"
+    );
   } catch (error) {
     setMessage("保存エラー：" + error.message, "error");
   }
 }
 
 async function seedAll() {
-  if (!confirm("初期問題を全ステージへ登録しますか？")) return;
+  if (!confirm("難易度別の初期問題を全ステージへ登録しますか？")) {
+    return;
+  }
 
   const batch = db.batch();
-  Object.entries(defaults).forEach(([id, questions]) => {
-    batch.set(db.collection("questions").doc(id), {
-      enabled: true,
-      questions,
-      updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
-      updatedBy: signedInUser.email
-    });
+
+  Object.entries(defaults).forEach(([id, data]) => {
+    batch.set(
+      db.collection("questions").doc(id),
+      {
+        enabled: true,
+        kidsQuestions: data.kids,
+        adultQuestions: data.adult,
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+        updatedBy: signedInUser.email
+      },
+      { merge: true }
+    );
   });
 
   try {
     await batch.commit();
-    setMessage("全ステージの初期問題を登録しました。", "ok");
+    setMessage("難易度別の初期問題を全登録しました。", "ok");
     await loadStage();
   } catch (error) {
     setMessage("一括登録エラー：" + error.message, "error");
@@ -262,6 +359,7 @@ $("loginBtn").onclick = () =>
 
 $("logoutBtn").onclick = () => auth.signOut();
 $("stage").onchange = loadStage;
+$("difficulty").onchange = loadStage;
 $("addBtn").onclick = () => createQuestionCard();
 $("saveBtn").onclick = saveStage;
 $("seedBtn").onclick = seedAll;
