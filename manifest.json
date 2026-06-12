@@ -1,0 +1,9 @@
+{
+  "name": "八ヶ岳クリスタルクエスト",
+  "short_name": "八ヶ岳RPG",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#08120d",
+  "theme_color": "#173728",
+  "icons": []
+}
