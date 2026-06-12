@@ -128,5 +128,13 @@ $("resetBtn").onclick=$("againBtn").onclick=()=>{localStorage.removeItem("qrRpgC
 try{const saved=localStorage.getItem("qrRpgCertV2");if(saved){Object.assign(state,JSON.parse(saved));if(state.name){if(state.completed&&location.hash==="#certificate"){showCertificate()}else{renderMap();show("map");direct()}}}}catch(e){localStorage.removeItem("qrRpgCertV2")}
 if("serviceWorker" in navigator){navigator.serviceWorker.register("service-worker.js").catch(()=>{})}
 </script>
+
+<!-- Firebase cloud sync -->
+<script src="https://www.gstatic.com/firebasejs/11.10.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/11.10.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script src="firebase-sync.js"></script>
+
 </body>
 </html>

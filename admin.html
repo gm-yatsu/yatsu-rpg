@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>八ヶ岳RPG スタッフ管理</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#f3f5f3;color:#1e2c22;font-family:system-ui,-apple-system,"Segoe UI",sans-serif}
+main{max-width:1180px;margin:auto;padding:24px}.top{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap}
+button{border:0;border-radius:10px;padding:11px 16px;font-weight:800;cursor:pointer}.primary{background:#1f6941;color:#fff}.secondary{background:#e4e9e5}
+.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:20px 0}.card{background:#fff;border-radius:14px;padding:18px;box-shadow:0 6px 18px rgba(0,0,0,.06)}
+.card strong{display:block;font-size:28px}.table-wrap{overflow:auto;background:#fff;border-radius:14px;box-shadow:0 6px 18px rgba(0,0,0,.06)}
+table{width:100%;border-collapse:collapse;min-width:900px}th,td{padding:12px;border-bottom:1px solid #e8ece8;text-align:left;font-size:14px}th{background:#eef3ef;position:sticky;top:0}
+.badge{display:inline-block;border-radius:999px;padding:4px 9px;font-size:12px;font-weight:800}.done{background:#d7f2df;color:#176533}.playing{background:#fff0bf;color:#725200}
+#message{padding:12px 0;color:#5c685f}@media(max-width:720px){.cards{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+<main>
+<div class="top">
+<div><h1>八ヶ岳RPG スタッフ管理</h1><p>利用者の進捗とクリア状況を確認します。</p></div>
+<div><button id="loginBtn" class="primary">Googleで管理者ログイン</button><button id="logoutBtn" class="secondary" hidden>ログアウト</button></div>
+</div>
+<div id="message">管理者ログインが必要です。</div>
+<section id="dashboard" hidden>
+<div class="cards">
+<div class="card">登録者数<strong id="total">0</strong></div>
+<div class="card">プレイ中<strong id="playing">0</strong></div>
+<div class="card">クリア人数<strong id="completed">0</strong></div>
+<div class="card">クリア率<strong id="rate">0%</strong></div>
+</div>
+<div class="table-wrap">
+<table>
+<thead><tr><th>更新日時</th><th>勇者名</th><th>進捗</th><th>クリスタル</th><th>HP</th><th>ランク</th><th>認定コード</th><th>ID</th></tr></thead>
+<tbody id="rows"></tbody>
+</table>
+</div>
+</section>
+</main>
+<script src="https://www.gstatic.com/firebasejs/11.10.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/11.10.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script>
+if (FIREBASE_CONFIG.apiKey.startsWith("REPLACE_")) {
+  document.getElementById("message").textContent = "firebase-config.jsの設定が未入力です。";
+} else {
+  firebase.initializeApp(FIREBASE_CONFIG);
+  const auth = firebase.auth();
+  const db = firebase.firestore();
+  const provider = new firebase.auth.GoogleAuthProvider();
+  let unsubscribe = null;
+
+  const $ = id => document.getElementById(id);
+  $("loginBtn").onclick = () => auth.signInWithPopup(provider).catch(e => $("message").textContent = e.message);
+  $("logoutBtn").onclick = () => auth.signOut();
+
+  auth.onAuthStateChanged(user => {
+    if (unsubscribe) { unsubscribe(); unsubscribe = null; }
+
+    if (!user) {
+      $("loginBtn").hidden = false;
+      $("logoutBtn").hidden = true;
+      $("dashboard").hidden = true;
+      $("message").textContent = "管理者ログインが必要です。";
+      return;
+    }
+
+    if ((user.email || "").toLowerCase() !== ADMIN_EMAIL.toLowerCase()) {
+      $("message").textContent = "このGoogleアカウントには管理権限がありません。";
+      $("dashboard").hidden = true;
+      $("logoutBtn").hidden = false;
+      $("loginBtn").hidden = true;
+      return;
+    }
+
+    $("loginBtn").hidden = true;
+    $("logoutBtn").hidden = false;
+    $("dashboard").hidden = false;
+    $("message").textContent = user.email + " でログイン中";
+
+    unsubscribe = db.collection("players").orderBy("updatedAt", "desc").onSnapshot(snapshot => {
+      const docs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      const completed = docs.filter(x => x.completed).length;
+      $("total").textContent = docs.length;
+      $("completed").textContent = completed;
+      $("playing").textContent = docs.length - completed;
+      $("rate").textContent = docs.length ? Math.round(completed / docs.length * 100) + "%" : "0%";
+
+      $("rows").innerHTML = docs.map(x => {
+        const date = x.updatedAt?.toDate ? x.updatedAt.toDate().toLocaleString("ja-JP") : "";
+        const status = x.completed
+          ? '<span class="badge done">クリア</span>'
+          : '<span class="badge playing">プレイ中</span>';
+        return `<tr>
+          <td>${date}</td>
+          <td>${escapeHtml(x.playerName || "")}</td>
+          <td>${status} ${(x.cleared || []).length}/5</td>
+          <td>${Number(x.crystals || 0)}/4</td>
+          <td>${Number(x.hp || 0)}</td>
+          <td>${escapeHtml(x.certificateRank || "")}</td>
+          <td>${escapeHtml(x.certificateCode || "")}</td>
+          <td>${x.id.slice(0,8)}…</td>
+        </tr>`;
+      }).join("");
+    }, error => {
+      $("message").textContent = "読込エラー：" + error.message;
+    });
+  });
+
+  function escapeHtml(value) {
+    return String(value).replace(/[&<>"']/g, c => ({
+      "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
+    })[c]);
+  }
+}
+</script>
+</body>
+</html>
