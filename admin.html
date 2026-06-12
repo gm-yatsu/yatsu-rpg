@@ -79,7 +79,7 @@ if (FIREBASE_CONFIG.apiKey.startsWith("REPLACE_")) {
     $("dashboard").hidden = false;
     $("message").textContent = user.email + " でログイン中";
 
-    unsubscribe = db.collection("players").orderBy("updatedAt", "desc").onSnapshot(snapshot => {
+    unsubscribe = db.collection("players").onSnapshot(snapshot => {
       const docs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       const completed = docs.filter(x => x.completed).length;
       $("total").textContent = docs.length;
