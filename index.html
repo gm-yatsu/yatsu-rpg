@@ -7,9 +7,11 @@
 <link rel="manifest" href="manifest.json">
 <title>八ヶ岳クリスタルクエスト</title>
 <style>
-*{box-sizing:border-box}body{margin:0;background:linear-gradient(#173728,#08120d);color:#fff;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;min-height:100vh}
-button,input,select{font:inherit}.app{width:min(100%,560px);min-height:100vh;margin:auto;padding:16px}.screen{display:none}.screen.active{display:block}
-.hero{text-align:center;padding:44px 8px 22px}.hero h1{font-size:clamp(38px,11vw,58px);line-height:1;margin:10px 0 18px}.sub{color:#cbd7ce;line-height:1.7}
+*{box-sizing:border-box}
+:root{--gold:#f1cf65;--deep:#10281b;--paper:#fffdf5;--ink:#213126}
+body{margin:0;min-height:100vh;background:linear-gradient(#173728,#08120d);color:#fff;font-family:system-ui,-apple-system,"Segoe UI",sans-serif}
+button,input,select{font:inherit}.app{width:min(100%,560px);min-height:100vh;margin:auto;padding:16px}
+.screen{display:none}.screen.active{display:block}.hero{text-align:center;padding:44px 8px 22px}.hero h1{font-size:clamp(38px,11vw,58px);line-height:1;margin:10px 0 18px}.sub{color:#cbd7ce;line-height:1.7}
 .panel,.enemy{background:rgba(14,33,23,.9);border:1px solid rgba(255,255,255,.15);border-radius:20px;padding:18px;box-shadow:0 14px 40px rgba(0,0,0,.28)}
 label{display:block;font-weight:800;margin:14px 0}input,select{width:100%;padding:14px;border:0;border-radius:12px;margin-top:8px}
 .primary,.secondary{width:100%;border:0;border-radius:14px;padding:15px;font-weight:900}.primary{background:linear-gradient(135deg,#f4d56d,#e5aa39);color:#1b241d}.secondary{background:rgba(255,255,255,.11);color:#fff;border:1px solid rgba(255,255,255,.13);margin-top:10px}
@@ -21,21 +23,32 @@ label{display:block;font-weight:800;margin:14px 0}input,select{width:100%;paddin
 @keyframes pulse{50%{box-shadow:0 0 0 10px rgba(242,207,99,.15),0 12px 28px rgba(0,0,0,.35)}}
 .n1{top:100px;left:22px}.n2{top:235px;right:24px}.n3{top:370px;left:25px}.n4{top:500px;right:25px}.n5{bottom:25px;left:50%;transform:translateX(-50%)}
 .enemy{text-align:center}.enemy-icon{font-size:88px}.hpbar{height:15px;background:#321d1d;border-radius:999px;overflow:hidden}.hpfill{height:100%;background:linear-gradient(90deg,#cf4848,#ef9b4b);transition:.3s}
-.row{display:flex;justify-content:space-between;margin:8px 0}.message{min-height:58px;display:grid;place-items:center;text-align:center;color:#ffe88c;font-weight:900}.choices{display:grid;gap:10px}.choice{width:100%;padding:14px;border-radius:13px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.09);color:#fff;text-align:left;font-weight:700}.choice.correct{background:#287b45}.choice.wrong{background:#8d3030}.hidden{display:none!important}.code{font-size:26px;font-weight:900;letter-spacing:2px;border:1px dashed #f2cf63;padding:15px;border-radius:14px;margin:20px 0}
-.install-note{font-size:12px;color:#cbd7ce;margin-top:10px}
+.row{display:flex;justify-content:space-between;margin:8px 0}.message{min-height:58px;display:grid;place-items:center;text-align:center;color:#ffe88c;font-weight:900}.choices{display:grid;gap:10px}.choice{width:100%;padding:14px;border-radius:13px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.09);color:#fff;text-align:left;font-weight:700}.choice.correct{background:#287b45}.choice.wrong{background:#8d3030}.hidden{display:none!important}
+.confetti{font-size:42px;letter-spacing:8px;animation:float 1.5s ease-in-out infinite alternate}@keyframes float{to{transform:translateY(-8px)}}
+.certificate{
+ background:var(--paper);color:var(--ink);border:10px double #b9912e;border-radius:8px;
+ padding:28px 20px;margin:18px 0;text-align:center;box-shadow:0 18px 48px rgba(0,0,0,.38)
+}
+.certificate h2{font-family:serif;font-size:34px;letter-spacing:.15em;margin:8px 0 20px}.certificate .name{font-size:28px;font-weight:900;border-bottom:2px solid #7d6a35;padding:8px 5px;margin:18px 0}.certificate .rank{font-size:22px;color:#7d5410;font-weight:900;margin:14px 0}.certificate .seal{width:74px;height:74px;border:4px double #a52a2a;border-radius:50%;display:grid;place-items:center;margin:18px auto 0;color:#a52a2a;font-weight:900;transform:rotate(-8deg)}
+.certificate-meta{display:grid;gap:6px;margin-top:16px;font-size:14px}.code{font-size:22px;font-weight:900;letter-spacing:2px;background:#efe6c6;padding:12px;border-radius:10px;margin-top:14px}
+.action-grid{display:grid;gap:10px;margin-top:14px}
+@media print{
+ body{background:#fff}.app{max-width:none;padding:0}.screen{display:none!important}#certificateScreen{display:block!important}.screen#certificateScreen .hero,.screen#certificateScreen .action-grid{display:none!important}
+ .certificate{width:190mm;min-height:267mm;margin:10mm auto;box-shadow:none;padding:28mm 18mm;border-width:12px}
+}
 </style>
 </head>
 <body>
 <main class="app">
 <section id="start" class="screen active">
-<div class="hero"><div>QR体験型RPG</div><h1>八ヶ岳<br>クリスタルクエスト</h1><p class="sub">4つのクリスタルを集めて、魔王を倒そう。</p></div>
+<div class="hero"><div>QR体験型RPG</div><h1>八ヶ岳<br>クリスタルクエスト</h1><p class="sub">4つのクリスタルを集め、魔王を倒して認定証を手に入れよう。</p></div>
 <div class="panel">
 <label>勇者の名前<input id="name" maxlength="12" placeholder="なまえ"></label>
 <label>難易度<select id="difficulty"><option value="kids">キッズ勇者</option><option value="adult">大人勇者</option></select></label>
 <button id="startBtn" class="primary">冒険を始める</button>
-<p class="install-note">スマートフォンの「ホーム画面に追加」に対応しています。</p>
 </div>
 </section>
+
 <section id="map" class="screen">
 <div class="status"><div><b id="mapName"></b><small>HP <span id="mapHp">100</span>/100</small></div><div>💎 <b id="crystals">0</b>/4</div></div>
 <div class="map">
@@ -45,6 +58,7 @@ label{display:block;font-weight:800;margin:14px 0}input,select{width:100%;paddin
 </div>
 <button id="resetBtn" class="secondary">最初からやり直す</button>
 </section>
+
 <section id="battle" class="screen">
 <div class="status"><button id="mapBtn" class="secondary" style="width:auto;margin:0">← マップ</button><div>勇者HP <b id="playerHp">100</b>/100</div></div>
 <div class="enemy"><div id="enemyIcon" class="enemy-icon">👾</div><h2 id="enemyName"></h2><div class="row"><span>敵HP</span><span><b id="enemyHp"></b>/<span id="enemyMax"></span></span></div><div class="hpbar"><div id="hpfill" class="hpfill"></div></div></div>
@@ -52,8 +66,38 @@ label{display:block;font-weight:800;margin:14px 0}input,select{width:100%;paddin
 <div class="panel"><div id="qNo"></div><h3 id="qText"></h3><div id="choices" class="choices"></div></div>
 <button id="nextBtn" class="primary hidden">次の問題</button><button id="returnBtn" class="primary hidden">マップに戻る</button>
 </section>
-<section id="ending" class="screen"><div class="hero"><div style="font-size:82px">🏆</div><h1>魔王撃破！</h1><p id="endingText" class="sub"></p><div class="code" id="code"></div><button id="againBtn" class="primary">もう一度遊ぶ</button></div></section>
+
+<section id="ending" class="screen">
+<div class="hero">
+<div class="confetti">✨🎉✨</div><div style="font-size:82px">🏆</div><h1>魔王撃破！</h1><p id="endingText" class="sub"></p>
+<button id="certificateBtn" class="primary">認定証を見る</button>
+</div>
+</section>
+
+<section id="certificateScreen" class="screen">
+<div class="hero"><div>QUEST COMPLETE</div><h1>勇者認定証</h1></div>
+<div id="certificate" class="certificate">
+<div>八ヶ岳クリスタルクエスト</div>
+<h2>勇者認定証</h2>
+<p>あなたは4つのクリスタルを集め、<br>闇の魔王ノクスを倒しました。</p>
+<div id="certName" class="name"></div>
+<div id="certRank" class="rank"></div>
+<p>その勇気と知恵を称え、<br>ここに八ヶ岳の勇者として認定します。</p>
+<div class="certificate-meta">
+<div>達成日：<span id="certDate"></span></div>
+<div>撃破数：5体</div>
+</div>
+<div id="certCode" class="code"></div>
+<div class="seal">勇者<br>認定</div>
+</div>
+<div class="action-grid">
+<button id="printBtn" class="primary">認定証を印刷</button>
+<button id="mapReturnBtn" class="secondary">マップへ戻る</button>
+<button id="againBtn" class="secondary">最初から遊ぶ</button>
+</div>
+</section>
 </main>
+
 <script>
 const stages=[
 {id:"slime",name:"森のスライム",icon:"🟢",hp:60,damage:30,crystal:true,q:[["森にいる動物は？",["リス","イルカ","ラクダ"],0],["ごみはどうする？",["持ち帰る","置いていく","川に流す"],0],["木の葉に多い色は？",["みどり","ぎん","くろ"],0]]},
@@ -62,21 +106,26 @@ const stages=[
 {id:"food",name:"フードロスモンスター",icon:"🍽️",hp:90,damage:30,crystal:true,q:[["食べられる分だけ取る理由は？",["残さないため","皿を増やすため","遊ぶため"],0],["食事前の言葉は？",["いただきます","おやすみ","さようなら"],0],["食後の言葉は？",["ごちそうさま","こんにちは","いってきます"],0]]},
 {id:"boss",name:"闇の魔王ノクス",icon:"🐉",hp:120,damage:40,crystal:false,boss:true,q:[["仲間と大切なのは？",["助け合う","けんかする","置いていく"],0],["困ったときは？",["スタッフに相談","隠れる","走る"],0],["自然を守るには？",["ごみを持ち帰る","枝を折る","動物を追う"],0]]}
 ];
-const state={name:"",difficulty:"kids",hp:100,crystals:0,cleared:[],stage:null,enemyHp:0,q:0};
+const state={name:"",difficulty:"kids",hp:100,crystals:0,cleared:[],stage:null,enemyHp:0,q:0,completed:false,certificate:null};
 const $=id=>document.getElementById(id), stageById=id=>stages.find(s=>s.id===id);
 function show(id){document.querySelectorAll(".screen").forEach(x=>x.classList.remove("active"));$(id).classList.add("active")}
-function save(){localStorage.setItem("qrRpgRelease",JSON.stringify(state))}
+function save(){localStorage.setItem("qrRpgCertV2",JSON.stringify(state))}
 function renderMap(){$("mapName").textContent=state.name;$("mapHp").textContent=state.hp;$("crystals").textContent=state.crystals;document.querySelectorAll(".node").forEach(n=>{const s=stageById(n.dataset.stage),clear=state.cleared.includes(s.id),locked=s.boss&&state.crystals<4;n.disabled=clear||locked;n.classList.toggle("clear",clear);n.classList.toggle("locked",locked);n.classList.toggle("ready",s.boss&&!clear&&!locked);n.innerHTML=`<span class="icon">${locked?"🔒":clear?"✅":s.icon}</span><strong>${s.name}</strong><small>${locked?"4つで解放":clear?"CLEAR":"挑戦する"}</small>`;n.onclick=()=>startBattle(s.id)})}
-function startBattle(id){const s=stageById(id);if(s.boss&&state.crystals<4){alert("クリスタルが4つ必要です");return}state.stage=id;state.enemyHp=s.hp;state.q=0;if(state.hp<=0)state.hp=100;save();renderBattle();show("battle")}
+function startBattle(id){const s=stageById(id);if(s.boss&&state.crystals<4){alert("クリスタルが4つ必要です");return}if(state.completed&&id==="boss"){showCertificate();return}state.stage=id;state.enemyHp=s.hp;state.q=0;if(state.hp<=0)state.hp=100;save();renderBattle();show("battle")}
 function renderBattle(){const s=stageById(state.stage);$("enemyIcon").textContent=s.icon;$("enemyName").textContent=s.name;$("enemyMax").textContent=s.hp;$("playerHp").textContent=state.hp;updateEnemy(s);renderQuestion(s)}
 function updateEnemy(s){$("enemyHp").textContent=Math.max(0,state.enemyHp);$("hpfill").style.width=Math.max(0,state.enemyHp/s.hp*100)+"%"}
 function renderQuestion(s){const src=s.q[state.q%s.q.length],items=src[1].map((t,i)=>({t,c:i===src[2]})).sort(()=>Math.random()-.5);$("qNo").textContent="問題 "+(state.q+1);$("qText").textContent=src[0];$("message").textContent="答えを選んで攻撃しよう";$("nextBtn").classList.add("hidden");$("returnBtn").classList.add("hidden");const box=$("choices");box.innerHTML="";items.forEach(it=>{const b=document.createElement("button");b.className="choice";b.textContent=it.t;b.dataset.correct=it.c?"1":"0";b.onclick=()=>answer(b,it.c,s);box.appendChild(b)})}
 function answer(b,correct,s){const btns=[...document.querySelectorAll(".choice")];btns.forEach(x=>x.disabled=true);if(correct){b.classList.add("correct");state.enemyHp-=s.damage;$("message").textContent="正解！ "+s.damage+"ダメージ！"}else{b.classList.add("wrong");btns.find(x=>x.dataset.correct==="1").classList.add("correct");state.hp=Math.max(0,state.hp-20);$("message").textContent="不正解。勇者は20ダメージ！"}$("playerHp").textContent=state.hp;updateEnemy(s);save();if(state.enemyHp<=0)return win(s);if(state.hp<=0){$("message").textContent="勇者は倒れた。再挑戦しよう";$("returnBtn").classList.remove("hidden");return}$("nextBtn").classList.remove("hidden")}
-function win(s){if(!state.cleared.includes(s.id)){state.cleared.push(s.id);if(s.crystal)state.crystals++}save();if(s.boss){$("endingText").textContent=state.name+"は魔王を倒し、八ヶ岳の平和を取り戻した！";$("code").textContent="YATSU-"+Math.floor(1000+Math.random()*9000);show("ending")}else{$("message").textContent=s.name+"を倒した！クリスタルを獲得！";$("returnBtn").classList.remove("hidden")}}
-function direct(){const id=new URLSearchParams(location.search).get("stage");if(!id||!stageById(id)||!state.name)return;if(state.cleared.includes(id)){alert("この敵は撃破済みです");return}startBattle(id)}
-$("startBtn").onclick=()=>{const n=$("name").value.trim();if(!n)return alert("名前を入力してください");state.name=n;state.difficulty=$("difficulty").value;state.hp=100;state.crystals=0;state.cleared=[];save();renderMap();show("map");direct()}
-$("nextBtn").onclick=()=>{state.q++;save();renderQuestion(stageById(state.stage))};$("returnBtn").onclick=$("mapBtn").onclick=()=>{renderMap();show("map")};$("resetBtn").onclick=$("againBtn").onclick=()=>{localStorage.removeItem("qrRpgRelease");location.href=location.pathname}
-try{const saved=localStorage.getItem("qrRpgRelease");if(saved){Object.assign(state,JSON.parse(saved));if(state.name){renderMap();show("map");direct()}}}catch(e){localStorage.removeItem("qrRpgRelease")}
+function rank(){return state.hp>=80?"黄金の勇者":state.hp>=40?"銀翼の勇者":"不屈の勇者"}
+function makeCertificate(){const now=new Date();const date=`${now.getFullYear()}年${now.getMonth()+1}月${now.getDate()}日`;const code="YATSU-"+Math.floor(100000+Math.random()*900000);state.certificate={date,code,rank:rank()};state.completed=true;save()}
+function win(s){if(!state.cleared.includes(s.id)){state.cleared.push(s.id);if(s.crystal)state.crystals++}if(s.boss){if(!state.certificate)makeCertificate();$("endingText").textContent=state.name+"は魔王を倒し、八ヶ岳の平和を取り戻した！";save();show("ending")}else{$("message").textContent=s.name+"を倒した！クリスタルを獲得！";save();$("returnBtn").classList.remove("hidden")}}
+function showCertificate(){if(!state.certificate)makeCertificate();$("certName").textContent=state.name+" 殿";$("certRank").textContent=state.certificate.rank;$("certDate").textContent=state.certificate.date;$("certCode").textContent="認定コード："+state.certificate.code;show("certificateScreen")}
+function direct(){const id=new URLSearchParams(location.search).get("stage");if(!id||!stageById(id)||!state.name)return;if(state.cleared.includes(id)&&id!=="boss"){alert("この敵は撃破済みです");return}startBattle(id)}
+$("startBtn").onclick=()=>{const n=$("name").value.trim();if(!n)return alert("名前を入力してください");Object.assign(state,{name:n,difficulty:$("difficulty").value,hp:100,crystals:0,cleared:[],stage:null,enemyHp:0,q:0,completed:false,certificate:null});save();renderMap();show("map");direct()}
+$("nextBtn").onclick=()=>{state.q++;save();renderQuestion(stageById(state.stage))};$("returnBtn").onclick=$("mapBtn").onclick=()=>{renderMap();show("map")}
+$("certificateBtn").onclick=showCertificate;$("printBtn").onclick=()=>window.print();$("mapReturnBtn").onclick=()=>{renderMap();show("map")}
+$("resetBtn").onclick=$("againBtn").onclick=()=>{localStorage.removeItem("qrRpgCertV2");location.href=location.pathname}
+try{const saved=localStorage.getItem("qrRpgCertV2");if(saved){Object.assign(state,JSON.parse(saved));if(state.name){if(state.completed&&location.hash==="#certificate"){showCertificate()}else{renderMap();show("map");direct()}}}}catch(e){localStorage.removeItem("qrRpgCertV2")}
 if("serviceWorker" in navigator){navigator.serviceWorker.register("service-worker.js").catch(()=>{})}
 </script>
 </body>
