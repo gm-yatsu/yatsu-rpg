@@ -1,0 +1,296 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>八ヶ岳RPG 問題管理</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#f3f5f3;color:#203027;font-family:system-ui,-apple-system,"Segoe UI",sans-serif}
+main{max-width:1100px;margin:auto;padding:24px}
+header{display:flex;justify-content:space-between;gap:16px;align-items:center;flex-wrap:wrap}
+button,input,select,textarea{font:inherit}
+button{border:0;border-radius:10px;padding:11px 15px;font-weight:800;cursor:pointer}
+.primary{background:#1e6941;color:#fff}.secondary{background:#e3e9e4}.danger{background:#9d3131;color:#fff}
+.panel{background:#fff;border-radius:16px;padding:18px;margin-top:18px;box-shadow:0 7px 22px rgba(0,0,0,.07)}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+label{display:block;font-weight:800}input,select,textarea{width:100%;margin-top:6px;padding:11px;border:1px solid #cad3cc;border-radius:9px}
+textarea{min-height:90px;resize:vertical}
+.question{border:1px solid #dfe6e0;border-radius:13px;padding:15px;margin-top:14px;background:#fbfcfb}
+.question-top{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.choices{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
+#message{margin-top:14px;font-weight:800}.ok{color:#176637}.error{color:#a12f2f}
+@media(max-width:700px){.grid,.choices{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<main>
+<header>
+<div><h1>八ヶ岳RPG 問題管理</h1><p>ステージごとの問題を追加・編集します。</p></div>
+<div>
+<button id="loginBtn" class="primary">Googleで管理者ログイン</button>
+<button id="logoutBtn" class="secondary" hidden>ログアウト</button>
+</div>
+</header>
+
+<div id="message">管理者ログインが必要です。</div>
+
+<section id="editor" class="panel" hidden>
+<div class="grid">
+<label>ステージ
+<select id="stage">
+<option value="slime">森のスライム</option>
+<option value="goblin">ドリフトゴブリン</option>
+<option value="ghost">湯けむりゴースト</option>
+<option value="food">フードロスモンスター</option>
+<option value="boss">闇の魔王ノクス</option>
+</select>
+</label>
+<label>公開状態
+<select id="enabled">
+<option value="true">公開</option>
+<option value="false">非公開（ゲーム内の初期問題を使用）</option>
+</select>
+</label>
+</div>
+
+<div id="questions"></div>
+
+<div class="actions">
+<button id="addBtn" class="secondary">＋ 問題を追加</button>
+<button id="saveBtn" class="primary">このステージを保存</button>
+<button id="seedBtn" class="secondary">初期問題を全ステージ登録</button>
+</div>
+</section>
+</main>
+
+<script src="https://www.gstatic.com/firebasejs/11.10.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/11.10.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script>
+if (!firebase.apps.length) firebase.initializeApp(FIREBASE_CONFIG);
+
+const auth = firebase.auth();
+const db = firebase.firestore();
+const provider = new firebase.auth.GoogleAuthProvider();
+const $ = id => document.getElementById(id);
+
+const defaults = {
+  slime: [
+    {text:"森にいる動物は？",choices:["リス","イルカ","ラクダ"],correctIndex:0},
+    {text:"ごみはどうする？",choices:["持ち帰る","置いていく","川に流す"],correctIndex:0},
+    {text:"木の葉に多い色は？",choices:["みどり","ぎん","くろ"],correctIndex:0}
+  ],
+  goblin: [
+    {text:"運動前にすることは？",choices:["準備体操","全力疾走","寝る"],correctIndex:0},
+    {text:"転んだ人がいたら？",choices:["声をかける","笑う","逃げる"],correctIndex:0},
+    {text:"順番を守るには？",choices:["並ぶ","抜かす","隠れる"],correctIndex:0}
+  ],
+  ghost: [
+    {text:"浴場でしてはいけないことは？",choices:["走る","静かに歩く","体を洗う"],correctIndex:0},
+    {text:"タオルは湯船に？",choices:["入れない","入れる","投げる"],correctIndex:0},
+    {text:"入浴前にすることは？",choices:["体を洗う","走る","食べる"],correctIndex:0}
+  ],
+  food: [
+    {text:"食べられる分だけ取る理由は？",choices:["残さないため","皿を増やすため","遊ぶため"],correctIndex:0},
+    {text:"食事前の言葉は？",choices:["いただきます","おやすみ","さようなら"],correctIndex:0},
+    {text:"食後の言葉は？",choices:["ごちそうさま","こんにちは","いってきます"],correctIndex:0}
+  ],
+  boss: [
+    {text:"仲間と大切なのは？",choices:["助け合う","けんかする","置いていく"],correctIndex:0},
+    {text:"困ったときは？",choices:["スタッフに相談","隠れる","走る"],correctIndex:0},
+    {text:"自然を守るには？",choices:["ごみを持ち帰る","枝を折る","動物を追う"],correctIndex:0}
+  ]
+};
+
+let signedInUser = null;
+
+function setMessage(text, type="") {
+  $("message").textContent = text;
+  $("message").className = type;
+}
+
+function createQuestionCard(question={text:"",choices:["","",""],correctIndex:0}) {
+  const wrap = document.createElement("div");
+  wrap.className = "question";
+  wrap.innerHTML = `
+    <div class="question-top">
+      <strong>問題</strong>
+      <button type="button" class="danger removeBtn">削除</button>
+    </div>
+    <label>問題文
+      <textarea class="qText"></textarea>
+    </label>
+    <div class="choices"></div>
+    <label>正解
+      <select class="correctIndex"></select>
+    </label>
+  `;
+
+  wrap.querySelector(".qText").value = question.text || "";
+  const choiceBox = wrap.querySelector(".choices");
+  const choices = Array.isArray(question.choices) && question.choices.length
+    ? question.choices.slice(0, 4)
+    : ["","",""];
+
+  while (choices.length < 3) choices.push("");
+
+  choices.forEach((choice, index) => {
+    const label = document.createElement("label");
+    label.textContent = `選択肢${index + 1}`;
+    const input = document.createElement("input");
+    input.className = "choiceInput";
+    input.value = choice;
+    label.appendChild(input);
+    choiceBox.appendChild(label);
+  });
+
+  const correct = wrap.querySelector(".correctIndex");
+  choices.forEach((_, index) => {
+    const option = document.createElement("option");
+    option.value = index;
+    option.textContent = `選択肢${index + 1}`;
+    correct.appendChild(option);
+  });
+  correct.value = String(Number(question.correctIndex || 0));
+
+  wrap.querySelector(".removeBtn").onclick = () => wrap.remove();
+  $("questions").appendChild(wrap);
+}
+
+function renderQuestions(list) {
+  $("questions").innerHTML = "";
+  (list.length ? list : [{}]).forEach(createQuestionCard);
+}
+
+function collectQuestions() {
+  return [...document.querySelectorAll(".question")].map(card => {
+    const choices = [...card.querySelectorAll(".choiceInput")]
+      .map(input => input.value.trim());
+
+    return {
+      text: card.querySelector(".qText").value.trim(),
+      choices,
+      correctIndex: Number(card.querySelector(".correctIndex").value)
+    };
+  });
+}
+
+function validateQuestions(list) {
+  if (!list.length) return "問題を1問以上登録してください。";
+
+  for (let i = 0; i < list.length; i++) {
+    const q = list[i];
+    if (!q.text) return `${i + 1}問目の問題文が空欄です。`;
+    if (q.choices.some(x => !x)) return `${i + 1}問目の選択肢に空欄があります。`;
+    if (new Set(q.choices).size !== q.choices.length) {
+      return `${i + 1}問目に同じ選択肢があります。`;
+    }
+  }
+  return "";
+}
+
+async function loadStage() {
+  const id = $("stage").value;
+  setMessage("読み込み中…");
+
+  try {
+    const snap = await db.collection("questions").doc(id).get();
+    if (snap.exists) {
+      const data = snap.data();
+      $("enabled").value = data.enabled === false ? "false" : "true";
+      renderQuestions(data.questions || []);
+    } else {
+      $("enabled").value = "true";
+      renderQuestions(defaults[id] || []);
+    }
+    setMessage("編集できます。", "ok");
+  } catch (error) {
+    setMessage("読込エラー：" + error.message, "error");
+  }
+}
+
+async function saveStage() {
+  const list = collectQuestions();
+  const error = validateQuestions(list);
+  if (error) {
+    setMessage(error, "error");
+    return;
+  }
+
+  try {
+    await db.collection("questions").doc($("stage").value).set({
+      enabled: $("enabled").value === "true",
+      questions: list,
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+      updatedBy: signedInUser.email
+    });
+    setMessage("保存しました。ゲームへ自動反映されます。", "ok");
+  } catch (error) {
+    setMessage("保存エラー：" + error.message, "error");
+  }
+}
+
+async function seedAll() {
+  if (!confirm("初期問題を全ステージへ登録しますか？")) return;
+
+  const batch = db.batch();
+  Object.entries(defaults).forEach(([id, questions]) => {
+    batch.set(db.collection("questions").doc(id), {
+      enabled: true,
+      questions,
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+      updatedBy: signedInUser.email
+    });
+  });
+
+  try {
+    await batch.commit();
+    setMessage("全ステージの初期問題を登録しました。", "ok");
+    await loadStage();
+  } catch (error) {
+    setMessage("一括登録エラー：" + error.message, "error");
+  }
+}
+
+$("loginBtn").onclick = () =>
+  auth.signInWithPopup(provider).catch(error =>
+    setMessage(error.message, "error")
+  );
+
+$("logoutBtn").onclick = () => auth.signOut();
+$("stage").onchange = loadStage;
+$("addBtn").onclick = () => createQuestionCard();
+$("saveBtn").onclick = saveStage;
+$("seedBtn").onclick = seedAll;
+
+auth.onAuthStateChanged(user => {
+  signedInUser = user;
+
+  if (!user) {
+    $("loginBtn").hidden = false;
+    $("logoutBtn").hidden = true;
+    $("editor").hidden = true;
+    setMessage("管理者ログインが必要です。");
+    return;
+  }
+
+  if ((user.email || "").toLowerCase() !== ADMIN_EMAIL.toLowerCase()) {
+    $("loginBtn").hidden = true;
+    $("logoutBtn").hidden = false;
+    $("editor").hidden = true;
+    setMessage("このGoogleアカウントには管理権限がありません。", "error");
+    return;
+  }
+
+  $("loginBtn").hidden = true;
+  $("logoutBtn").hidden = false;
+  $("editor").hidden = false;
+  setMessage(user.email + " でログイン中", "ok");
+  loadStage();
+});
+</script>
+</body>
+</html>
