@@ -1,3 +1,4 @@
+
 <!doctype html>
 <html lang="ja">
 <head>
@@ -35,7 +36,8 @@ th{background:#eef3ef;position:sticky;top:0}.good{color:#176637;font-weight:800}
 <label>ステージ
 <select id="stageFilter">
 <option value="all">すべて</option><option value="slime">森のスライム</option><option value="goblin">ドリフトゴブリン</option>
-<option value="ghost">湯けむりゴースト</option><option value="food">フードロスモンスター</option><option value="boss">闇の魔王ノクス</option>
+<option value="ghost">湯けむりゴースト</option><option value="food">フードロスモンスター</option><option value="star">星降るウィザード</option>
+<option value="wolf">雪原のホワイトウルフ</option><option value="golem">森のゴーレム</option><option value="boss">闇の魔王ノクス</option>
 </select></label>
 </div>
 
@@ -64,7 +66,7 @@ th{background:#eef3ef;position:sticky;top:0}.good{color:#176637;font-weight:800}
 <script>
 if (!firebase.apps.length) firebase.initializeApp(FIREBASE_CONFIG);
 const auth=firebase.auth(),db=firebase.firestore(),provider=new firebase.auth.GoogleAuthProvider(),$=id=>document.getElementById(id);
-const stageNames={slime:"森のスライム",goblin:"ドリフトゴブリン",ghost:"湯けむりゴースト",food:"フードロスモンスター",boss:"闇の魔王ノクス"};
+const stageNames={slime:"森のスライム",goblin:"ドリフトゴブリン",ghost:"湯けむりゴースト",food:"フードロスモンスター",star:"星降るウィザード",wolf:"雪原のホワイトウルフ",golem:"森のゴーレム",boss:"闇の魔王ノクス"};
 let events=[];
 
 function setMessage(text,cls=""){$("message").textContent=text;$("message").className=cls}
@@ -107,6 +109,5 @@ auth.onAuthStateChanged(user=>{
   db.collection("gameEvents").onSnapshot(s=>{events=s.docs.map(d=>({id:d.id,...d.data()}));render()},e=>setMessage("データ読込エラー："+e.message,"bad"));
 });
 </script>
-<script src="analytics-eight-patch.js"></script>
 </body>
 </html>
