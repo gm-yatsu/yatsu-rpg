@@ -1,3 +1,4 @@
+
 <!doctype html>
 <html lang="ja">
 <head>
@@ -162,8 +163,8 @@ function render() {
       <td>${escapeHtml(formatDate(player.updatedAt))}</td>
       <td>${escapeHtml(player.playerName || "")}</td>
       <td>${status}</td>
-      <td>${Array.isArray(player.cleared) ? player.cleared.length : 0}/5</td>
-      <td>${Number(player.crystals || 0)}/4</td>
+      <td>${Array.isArray(player.cleared) ? player.cleared.length : 0}/8</td>
+      <td>${Number(player.crystals || 0)}/7</td>
       <td>${Number(player.hp || 0)}</td>
       <td>${player.difficulty === "adult" ? "大人" : "キッズ"}</td>
       <td>${escapeHtml(player.certificateCode || "")}</td>
@@ -357,6 +358,5 @@ auth.onAuthStateChanged(user => {
 window.resetPlayer = resetPlayer;
 window.deletePlayer = deletePlayer;
 </script>
-<script src="admin-eight-patch.js"></script>
 </body>
 </html>
