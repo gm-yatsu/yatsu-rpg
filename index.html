@@ -1,3 +1,4 @@
+
 <!doctype html>
 <html lang="ja">
 <head>
@@ -16,12 +17,12 @@ button,input,select{font:inherit}.app{width:min(100%,560px);min-height:100vh;mar
 label{display:block;font-weight:800;margin:14px 0}input,select{width:100%;padding:14px;border:0;border-radius:12px;margin-top:8px}
 .primary,.secondary{width:100%;border:0;border-radius:14px;padding:15px;font-weight:900}.primary{background:linear-gradient(135deg,#f4d56d,#e5aa39);color:#1b241d}.secondary{background:rgba(255,255,255,.11);color:#fff;border:1px solid rgba(255,255,255,.13);margin-top:10px}
 .status{display:flex;justify-content:space-between;align-items:center;padding:4px 2px 14px}.status small{display:block;color:#cbd7ce}
-.map{position:relative;min-height:700px;overflow:hidden;border-radius:24px;border:1px solid rgba(255,255,255,.15);background:linear-gradient(#2d6b43 0 30%,#477d4d 30% 58%,#a88d62 58% 76%,#294f3b 76%);box-shadow:inset 0 0 60px rgba(0,0,0,.35)}
+.map{position:relative;min-height:980px;overflow:hidden;border-radius:24px;border:1px solid rgba(255,255,255,.15);background:linear-gradient(#2d6b43 0 30%,#477d4d 30% 58%,#a88d62 58% 76%,#294f3b 76%);box-shadow:inset 0 0 60px rgba(0,0,0,.35)}
 .map-title{position:absolute;top:16px;left:10px;right:10px;text-align:center}.path{position:absolute;border-top:3px dashed rgba(255,242,195,.55);width:170px}.p1{top:185px;left:115px;transform:rotate(22deg)}.p2{top:320px;left:210px;transform:rotate(-24deg)}.p3{top:450px;left:120px;transform:rotate(18deg)}.p4{top:565px;left:205px;transform:rotate(-20deg)}
 .node{position:absolute;width:116px;min-height:105px;padding:9px;border-radius:24px;border:2px solid rgba(255,255,255,.26);color:#fff;background:rgba(11,30,19,.84);text-align:center;box-shadow:0 12px 28px rgba(0,0,0,.35)}
 .node .icon{display:block;font-size:40px}.node strong{font-size:13px;display:block}.node small{font-size:11px;color:#d5dfd7;display:block;margin-top:5px}.node.clear{background:rgba(24,102,51,.92);border-color:#91e1a9}.node.locked{filter:grayscale(.8);opacity:.65}.node.ready{animation:pulse 1.2s infinite}
 @keyframes pulse{50%{box-shadow:0 0 0 10px rgba(242,207,99,.15),0 12px 28px rgba(0,0,0,.35)}}
-.n1{top:100px;left:22px}.n2{top:235px;right:24px}.n3{top:370px;left:25px}.n4{top:500px;right:25px}.n5{bottom:25px;left:50%;transform:translateX(-50%)}
+.n1{top:90px;left:18px}.n2{top:205px;right:18px}.n3{top:325px;left:18px}.n4{top:445px;right:18px}.n5{bottom:20px;left:50%;transform:translateX(-50%)}.n6{top:565px;left:18px}.n7{top:685px;right:18px}.n8{top:805px;left:18px}
 .enemy{text-align:center}.enemy-icon{font-size:88px}.hpbar{height:15px;background:#321d1d;border-radius:999px;overflow:hidden}.hpfill{height:100%;background:linear-gradient(90deg,#cf4848,#ef9b4b);transition:.3s}
 .row{display:flex;justify-content:space-between;margin:8px 0}.message{min-height:58px;display:grid;place-items:center;text-align:center;color:#ffe88c;font-weight:900}.choices{display:grid;gap:10px}.choice{width:100%;padding:14px;border-radius:13px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.09);color:#fff;text-align:left;font-weight:700}.choice.correct{background:#287b45}.choice.wrong{background:#8d3030}.hidden{display:none!important}
 .confetti{font-size:42px;letter-spacing:8px;animation:float 1.5s ease-in-out infinite alternate}@keyframes float{to{transform:translateY(-8px)}}
@@ -50,11 +51,11 @@ label{display:block;font-weight:800;margin:14px 0}input,select{width:100%;paddin
 </section>
 
 <section id="map" class="screen">
-<div class="status"><div><b id="mapName"></b><small>HP <span id="mapHp">100</span>/100</small></div><div>💎 <b id="crystals">0</b>/4</div></div>
+<div class="status"><div><b id="mapName"></b><small>HP <span id="mapHp">100</span>/100</small></div><div>💎 <b id="crystals">0</b>/7</div></div>
 <div class="map">
 <div class="map-title"><b>八ヶ岳 冒険マップ</b><br><small>QRを読み込むか、地点をタップ</small></div>
 <div class="path p1"></div><div class="path p2"></div><div class="path p3"></div><div class="path p4"></div>
-<button class="node n1" data-stage="slime"></button><button class="node n2" data-stage="goblin"></button><button class="node n3" data-stage="ghost"></button><button class="node n4" data-stage="food"></button><button class="node n5" data-stage="boss"></button>
+<button class="node n1" data-stage="slime"></button><button class="node n2" data-stage="goblin"></button><button class="node n3" data-stage="ghost"></button><button class="node n4" data-stage="food"></button><button class="node n6" data-stage="star"></button><button class="node n7" data-stage="wolf"></button><button class="node n8" data-stage="golem"></button><button class="node n5" data-stage="boss"></button>
 </div>
 <button id="resetBtn" class="secondary">最初からやり直す</button>
 </section>
@@ -104,14 +105,17 @@ const stages=[
 {id:"goblin",name:"ドリフトゴブリン",icon:"👺",hp:90,damage:30,crystal:true,q:[["運動前にすることは？",["準備体操","全力疾走","寝る"],0],["転んだ人がいたら？",["声をかける","笑う","逃げる"],0],["順番を守るには？",["並ぶ","抜かす","隠れる"],0]]},
 {id:"ghost",name:"湯けむりゴースト",icon:"👻",hp:90,damage:30,crystal:true,q:[["浴場でしてはいけないことは？",["走る","静かに歩く","体を洗う"],0],["タオルは湯船に？",["入れない","入れる","投げる"],0],["入浴前にすることは？",["体を洗う","走る","食べる"],0]]},
 {id:"food",name:"フードロスモンスター",icon:"🍽️",hp:90,damage:30,crystal:true,q:[["食べられる分だけ取る理由は？",["残さないため","皿を増やすため","遊ぶため"],0],["食事前の言葉は？",["いただきます","おやすみ","さようなら"],0],["食後の言葉は？",["ごちそうさま","こんにちは","いってきます"],0]]},
+{id:"star",name:"星降るウィザード",icon:"🧙‍♂️",hp:90,damage:30,crystal:true,q:[["夜空で光って見えるものは？",["星","石","木の根"],0],["星を見るときに適した場所は？",["暗い場所","明るい部屋","テレビの前"],0],["夜空を観察するときに大切なのは？",["安全な場所で見る","道路に飛び出す","一人で遠くへ行く"],0]]},
+{id:"wolf",name:"雪原のホワイトウルフ",icon:"🐺",hp:90,damage:30,crystal:true,q:[["寒い日に必要なものは？",["防寒着","水着","うちわ"],0],["雪道で安全な歩き方は？",["ゆっくり歩く","全力で走る","目を閉じる"],0],["冬の屋外で大切なのは？",["体を冷やしすぎない","薄着で長時間遊ぶ","水分を取らない"],0]]},
+{id:"golem",name:"森のゴーレム",icon:"🗿",hp:120,damage:40,crystal:true,q:[["森の植物を守る行動は？",["道から外れない","枝を折る","花を全部摘む"],0],["野生動物を見つけたら？",["離れて観察する","追いかける","餌をあげる"],0],["森にごみを残してはいけない理由は？",["自然や動物を守るため","木を高くするため","雨を止めるため"],0]]},
 {id:"boss",name:"闇の魔王ノクス",icon:"🐉",hp:120,damage:40,crystal:false,boss:true,q:[["仲間と大切なのは？",["助け合う","けんかする","置いていく"],0],["困ったときは？",["スタッフに相談","隠れる","走る"],0],["自然を守るには？",["ごみを持ち帰る","枝を折る","動物を追う"],0]]}
 ];
 const state={name:"",difficulty:"kids",hp:100,crystals:0,cleared:[],stage:null,enemyHp:0,q:0,completed:false,certificate:null};
 const $=id=>document.getElementById(id), stageById=id=>stages.find(s=>s.id===id);
 function show(id){document.querySelectorAll(".screen").forEach(x=>x.classList.remove("active"));$(id).classList.add("active")}
 function save(){localStorage.setItem("qrRpgCertV2",JSON.stringify(state))}
-function renderMap(){$("mapName").textContent=state.name;$("mapHp").textContent=state.hp;$("crystals").textContent=state.crystals;document.querySelectorAll(".node").forEach(n=>{const s=stageById(n.dataset.stage),clear=state.cleared.includes(s.id),locked=s.boss&&state.crystals<4;n.disabled=clear||locked;n.classList.toggle("clear",clear);n.classList.toggle("locked",locked);n.classList.toggle("ready",s.boss&&!clear&&!locked);n.innerHTML=`<span class="icon">${locked?"🔒":clear?"✅":s.icon}</span><strong>${s.name}</strong><small>${locked?"4つで解放":clear?"CLEAR":"挑戦する"}</small>`;n.onclick=()=>startBattle(s.id)})}
-function startBattle(id){const s=stageById(id);if(s.boss&&state.crystals<4){alert("クリスタルが4つ必要です");return}if(state.completed&&id==="boss"){showCertificate();return}state.stage=id;state.enemyHp=s.hp;state.q=0;if(state.hp<=0)state.hp=100;save();renderBattle();show("battle")}
+function renderMap(){$("mapName").textContent=state.name;$("mapHp").textContent=state.hp;$("crystals").textContent=state.crystals;document.querySelectorAll(".node").forEach(n=>{const s=stageById(n.dataset.stage),clear=state.cleared.includes(s.id),locked=s.boss&&state.crystals<7;n.disabled=clear||locked;n.classList.toggle("clear",clear);n.classList.toggle("locked",locked);n.classList.toggle("ready",s.boss&&!clear&&!locked);n.innerHTML=`<span class="icon">${locked?"🔒":clear?"✅":s.icon}</span><strong>${s.name}</strong><small>${locked?"7つで解放":clear?"CLEAR":"挑戦する"}</small>`;n.onclick=()=>startBattle(s.id)})}
+function startBattle(id){const s=stageById(id);if(s.boss&&state.crystals<7){alert("クリスタルが7つ必要です");return}if(state.completed&&id==="boss"){showCertificate();return}state.stage=id;state.enemyHp=s.hp;state.q=0;if(state.hp<=0)state.hp=100;save();renderBattle();show("battle")}
 function renderBattle(){const s=stageById(state.stage);$("enemyIcon").textContent=s.icon;$("enemyName").textContent=s.name;$("enemyMax").textContent=s.hp;$("playerHp").textContent=state.hp;updateEnemy(s);renderQuestion(s)}
 function updateEnemy(s){$("enemyHp").textContent=Math.max(0,state.enemyHp);$("hpfill").style.width=Math.max(0,state.enemyHp/s.hp*100)+"%"}
 function renderQuestion(s){const src=s.q[state.q%s.q.length],items=src[1].map((t,i)=>({t,c:i===src[2]})).sort(()=>Math.random()-.5);$("qNo").textContent="問題 "+(state.q+1);$("qText").textContent=src[0];$("message").textContent="答えを選んで攻撃しよう";$("nextBtn").classList.add("hidden");$("returnBtn").classList.add("hidden");const box=$("choices");box.innerHTML="";items.forEach(it=>{const b=document.createElement("button");b.className="choice";b.textContent=it.t;b.dataset.correct=it.c?"1":"0";b.onclick=()=>answer(b,it.c,s);box.appendChild(b)})}
@@ -140,6 +144,5 @@ if("serviceWorker" in navigator){navigator.serviceWorker.register("service-worke
 <script src="analytics-logger.js"></script>
 <script src="network-status.js"></script>
 <script src="device-reset-sync.js"></script>
-<script src="eight-stage-patch.js"></script>
 </body>
 </html>
