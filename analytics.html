@@ -1,4 +1,3 @@
-
 <!doctype html>
 <html lang="ja">
 <head>
@@ -6,56 +5,202 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>八ヶ岳RPG 分析ダッシュボード</title>
 <style>
-*{box-sizing:border-box}body{margin:0;background:#f3f5f3;color:#213027;font-family:system-ui,-apple-system,"Segoe UI",sans-serif}
-main{max-width:1200px;margin:auto;padding:24px}header{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap}
-button,select{font:inherit}button{border:0;border-radius:10px;padding:11px 15px;font-weight:800;cursor:pointer}
-.primary{background:#1d6940;color:white}.secondary{background:#e3e9e4}
-.filters{display:flex;gap:12px;flex-wrap:wrap;align-items:end;margin-top:16px}
-label{font-weight:800}select{display:block;margin-top:6px;padding:9px;border:1px solid #cad3cc;border-radius:9px}
-.cards{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin:20px 0}.card{background:white;border-radius:14px;padding:18px;box-shadow:0 6px 18px rgba(0,0,0,.06)}
-.card strong{display:block;font-size:28px;margin-top:6px}.panel{background:white;border-radius:14px;padding:18px;margin-top:18px;box-shadow:0 6px 18px rgba(0,0,0,.06)}
-.table-wrap{overflow:auto}table{width:100%;border-collapse:collapse;min-width:760px}th,td{padding:11px;border-bottom:1px solid #e7ece8;text-align:left;font-size:14px}
-th{background:#eef3ef;position:sticky;top:0}.good{color:#176637;font-weight:800}.warn{color:#9b5c00;font-weight:800}.bad{color:#a12f2f;font-weight:800}
-#message{margin-top:12px;font-weight:800}@media(max-width:900px){.cards{grid-template-columns:1fr 1fr}}
+*{box-sizing:border-box}
+body{margin:0;background:#f3f5f3;color:#213027;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;line-height:1.5}
+main{max-width:1280px;margin:auto;padding:24px}
+header{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap}
+h1,h2,h3,p{margin-top:0}
+h1{margin-bottom:6px}
+h2{margin-bottom:8px}
+button,select{font:inherit}
+button{border:0;border-radius:10px;padding:11px 15px;font-weight:800;cursor:pointer}
+button:focus-visible,select:focus-visible{outline:3px solid #64a77d;outline-offset:2px}
+.primary{background:#1d6940;color:white}
+.secondary{background:#e3e9e4;color:#213027}
+.filters{display:flex;gap:12px;flex-wrap:wrap;align-items:end;margin-top:16px;padding:16px 0;border-top:1px solid #d9e1db;border-bottom:1px solid #d9e1db}
+.filters label{font-weight:800}
+select{display:block;min-width:160px;margin-top:6px;padding:9px;border:1px solid #cad3cc;border-radius:9px;background:white;color:#213027}
+.section{margin-top:28px}
+.section-heading{display:flex;justify-content:space-between;align-items:end;gap:16px;flex-wrap:wrap;margin-bottom:12px}
+.section-heading p{margin-bottom:0;color:#5a6b60}
+.cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.cards.compact{grid-template-columns:repeat(5,minmax(0,1fr))}
+.card{background:white;border-radius:14px;padding:18px;box-shadow:0 6px 18px rgba(0,0,0,.06)}
+.card span{display:block;color:#5a6b60;font-weight:700}
+.card strong{display:block;font-size:28px;margin-top:6px;font-variant-numeric:tabular-nums}
+.panel{background:white;border-radius:14px;padding:18px;margin-top:18px;box-shadow:0 6px 18px rgba(0,0,0,.06)}
+.note{margin:12px 0 0;padding:12px 14px;border-left:4px solid #b27b20;background:#fff7e7;color:#68460e}
+.status-line{margin:12px 0 0;color:#5a6b60}
+.funnel{display:grid;gap:10px}
+.funnel-row{display:grid;grid-template-columns:minmax(160px,1.2fr) minmax(220px,3fr) minmax(140px,1fr);gap:12px;align-items:center}
+.funnel-label{font-weight:800}
+.funnel-track{height:18px;background:#e5ebe6;border-radius:999px;overflow:hidden}
+.funnel-bar{height:100%;background:#2f8051}
+.funnel-value{text-align:right;font-variant-numeric:tabular-nums}
+.dropoffs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.dropoff{border-top:5px solid #c47a33}
+.dropoff strong{color:#8c4b13}
+.table-wrap{overflow:auto}
+table{width:100%;border-collapse:collapse;min-width:900px}
+th,td{padding:11px;border-bottom:1px solid #e7ece8;text-align:left;font-size:14px;vertical-align:top}
+th{background:#eef3ef;position:sticky;top:0;z-index:1}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.good{color:#176637;font-weight:800}
+.warn{color:#8a5400;font-weight:800}
+.bad{color:#a12f2f;font-weight:800}
+.neutral{color:#5a6b60;font-weight:800}
+#message{margin-top:12px;font-weight:800}
+#message[role="alert"]{padding:12px 14px;border-radius:10px;background:#fdecec}
+.empty-cell{text-align:center;color:#5a6b60;padding:24px}
+[hidden]{display:none!important}
+@media(max-width:1000px){
+  .cards.compact{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .dropoffs{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:720px){
+  main{padding:16px}
+  .cards,.cards.compact{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .funnel-row{grid-template-columns:1fr}
+  .funnel-value{text-align:left}
+}
+@media(max-width:460px){
+  .cards,.cards.compact,.dropoffs{grid-template-columns:1fr}
+  .filters label,.filters select,.filters button{width:100%}
+}
 </style>
 </head>
 <body>
 <main>
 <header>
-<div><h1>八ヶ岳RPG 分析ダッシュボード</h1><p>問題別正答率、ステージ挑戦数、クリア率を確認します。</p></div>
-<div><button id="loginBtn" class="primary">Googleで管理者ログイン</button><button id="logoutBtn" class="secondary" hidden>ログアウト</button></div>
+  <div>
+    <h1>八ヶ岳RPG 分析ダッシュボード</h1>
+    <p>利用状況、クリア導線、離脱ポイント、問題の正答率を確認します。</p>
+  </div>
+  <div>
+    <button id="loginBtn" class="primary">Googleで管理者ログイン</button>
+    <button id="logoutBtn" class="secondary" hidden>ログアウト</button>
+  </div>
 </header>
-<div id="message">管理者ログインが必要です。</div>
+<div id="message" role="status" aria-live="polite">管理者ログインが必要です。</div>
 
 <section id="dashboard" hidden>
-<div class="filters">
-<label>難易度
-<select id="difficultyFilter">
-<option value="all">すべて</option><option value="kids">キッズ勇者</option><option value="adult">大人勇者</option>
-</select></label>
-<label>ステージ
-<select id="stageFilter">
-<option value="all">すべて</option><option value="slime">森のスライム</option><option value="goblin">ドリフトゴブリン</option>
-<option value="ghost">湯けむりゴースト</option><option value="food">フードロスモンスター</option><option value="star">星降るウィザード</option>
-<option value="wolf">雪原のホワイトウルフ</option><option value="golem">森のゴーレム</option><option value="boss">闇の魔王ノクス</option>
-</select></label>
-</div>
+  <div class="filters" aria-label="分析フィルター">
+    <label>期間
+      <select id="periodFilter">
+        <option value="all">全期間</option>
+        <option value="today">今日</option>
+        <option value="7days">直近7日</option>
+      </select>
+    </label>
+    <label>難易度
+      <select id="difficultyFilter">
+        <option value="all">すべて</option>
+        <option value="kids">キッズ勇者</option>
+        <option value="adult">大人勇者</option>
+      </select>
+    </label>
+    <label>ステージ
+      <select id="stageFilter">
+        <option value="all">すべて</option>
+        <option value="slime">森のスライム</option>
+        <option value="goblin">ドリフトゴブリン</option>
+        <option value="ghost">湯けむりゴースト</option>
+        <option value="food">フードロスモンスター</option>
+        <option value="star">星降るウィザード</option>
+        <option value="wolf">雪原のホワイトウルフ</option>
+        <option value="golem">森のゴーレム</option>
+        <option value="boss">闇の魔王ノクス</option>
+      </select>
+    </label>
+    <button id="resetFiltersBtn" class="secondary" type="button">フィルター解除</button>
+  </div>
+  <p id="filterStatus" class="status-line" aria-live="polite">データを読み込んでいます。</p>
+  <p id="legacyNote" class="note">
+    注記：<code>eventType</code> がない旧ログは <code>type</code> から正規化します。
+    旧ログの到達人数は、挑戦・撃破・crystals・completed・certificateCodeなどから推定を含みます。
+    プレイヤー識別は uid、playerId、playerName の順で補完します。日時不明の旧ログは、期間指定時には集計対象外です。
+  </p>
 
-<div class="cards">
-<div class="card">挑戦回数<strong id="stageStarts">0</strong></div>
-<div class="card">回答数<strong id="answers">0</strong></div>
-<div class="card">正解数<strong id="correctAnswers">0</strong></div>
-<div class="card">正答率<strong id="accuracy">0%</strong></div>
-<div class="card">クリア数<strong id="stageClears">0</strong></div>
-</div>
+  <section class="section" aria-labelledby="summaryTitle">
+    <div class="section-heading">
+      <div><h2 id="summaryTitle">利用・クリア状況</h2><p>人数はプレイヤー単位、リセットはイベント件数です。</p></div>
+    </div>
+    <div class="cards">
+      <div class="card"><span>冒険開始人数</span><strong id="gameStartPlayers">0</strong></div>
+      <div class="card"><span>1体以上クリア人数</span><strong id="clearPlayers">0</strong></div>
+      <div class="card"><span>7クリスタル到達人数</span><strong id="allCrystalPlayers">0</strong></div>
+      <div class="card"><span>ラスボス撃破人数</span><strong id="bossClearPlayers">0</strong></div>
+      <div class="card"><span>認定証発行人数</span><strong id="certificatePlayers">0</strong></div>
+      <div class="card"><span>リセット回数</span><strong id="resetCount">0</strong></div>
+    </div>
+  </section>
 
-<div class="panel"><h2>問題別正答率</h2><div class="table-wrap"><table>
-<thead><tr><th>ステージ</th><th>難易度</th><th>問題</th><th>回答数</th><th>正解数</th><th>正答率</th></tr></thead>
-<tbody id="questionRows"></tbody></table></div></div>
+  <section class="section" aria-labelledby="eventTotalsTitle">
+    <div class="section-heading">
+      <div><h2 id="eventTotalsTitle">従来指標（イベント件数）</h2><p>既存画面の挑戦数・回答数・正解数・正答率・クリア数を維持しています。</p></div>
+    </div>
+    <div class="cards compact">
+      <div class="card"><span>挑戦回数</span><strong id="stageStarts">0</strong></div>
+      <div class="card"><span>回答数</span><strong id="answers">0</strong></div>
+      <div class="card"><span>正解数</span><strong id="correctAnswers">0</strong></div>
+      <div class="card"><span>正答率</span><strong id="accuracy">0%</strong></div>
+      <div class="card"><span>クリア数</span><strong id="stageClears">0</strong></div>
+    </div>
+  </section>
 
-<div class="panel"><h2>ステージ別実績</h2><div class="table-wrap"><table>
-<thead><tr><th>ステージ</th><th>挑戦数</th><th>クリア数</th><th>クリア率</th><th>平均クリア時間</th></tr></thead>
-<tbody id="stageRows"></tbody></table></div></div>
+  <section class="panel" aria-labelledby="funnelTitle">
+    <div class="section-heading">
+      <div><h2 id="funnelTitle">クリア導線ファネル</h2><p>選択したステージに接触したプレイヤーのコホートで集計します。</p></div>
+    </div>
+    <div id="funnelRows" class="funnel"></div>
+  </section>
+
+  <section class="section" aria-labelledby="dropoffTitle">
+    <div class="section-heading">
+      <div><h2 id="dropoffTitle">離脱ポイント</h2><p>各到達状態の差分から推定した人数です。</p></div>
+    </div>
+    <div class="dropoffs">
+      <div class="card dropoff"><span>開始後、1体も未撃破</span><strong id="dropBeforeClear">0</strong></div>
+      <div class="card dropoff"><span>1体以上撃破、7個未到達</span><strong id="dropBeforeCrystals">0</strong></div>
+      <div class="card dropoff"><span>7個到達、ボス未撃破</span><strong id="dropBeforeBossClear">0</strong></div>
+      <div class="card dropoff"><span>ボス撃破、認定証未発行</span><strong id="dropBeforeCertificate">0</strong></div>
+    </div>
+  </section>
+
+  <section class="panel" aria-labelledby="stageTitle">
+    <div class="section-heading">
+      <div><h2 id="stageTitle">8体別分析</h2><p>全ステージ選択時は8体を固定表示します。</p></div>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>ステージID</th><th>敵名</th><th class="num">挑戦数</th><th class="num">撃破数</th>
+            <th class="num">クリア率</th><th class="num">回答数</th><th class="num">正答率</th>
+            <th class="num">平均クリスタル数</th><th class="num">平均クリア時間</th>
+          </tr>
+        </thead>
+        <tbody id="stageRows"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="panel" aria-labelledby="questionTitle">
+    <div class="section-heading">
+      <div><h2 id="questionTitle">問題別正答率</h2><p>正答率が低い問題から表示します。</p></div>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>敵名</th><th>難易度</th><th class="num">問題番号</th><th>問題文</th>
+            <th class="num">回答数</th><th class="num">正解数</th><th class="num">正答率</th>
+          </tr>
+        </thead>
+        <tbody id="questionRows"></tbody>
+      </table>
+    </div>
+  </section>
 </section>
 </main>
 
@@ -65,48 +210,417 @@ th{background:#eef3ef;position:sticky;top:0}.good{color:#176637;font-weight:800}
 <script src="firebase-config.js"></script>
 <script>
 if (!firebase.apps.length) firebase.initializeApp(FIREBASE_CONFIG);
-const auth=firebase.auth(),db=firebase.firestore(),provider=new firebase.auth.GoogleAuthProvider(),$=id=>document.getElementById(id);
-const stageNames={slime:"森のスライム",goblin:"ドリフトゴブリン",ghost:"湯けむりゴースト",food:"フードロスモンスター",star:"星降るウィザード",wolf:"雪原のホワイトウルフ",golem:"森のゴーレム",boss:"闇の魔王ノクス"};
-let events=[];
 
-function setMessage(text,cls=""){$("message").textContent=text;$("message").className=cls}
-function escapeHtml(v){return String(v).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]))}
-function rateClass(r){return r>=80?"good":r>=60?"warn":"bad"}
-function filtered(){const d=$("difficultyFilter").value,s=$("stageFilter").value;return events.filter(e=>(d==="all"||e.difficulty===d)&&(s==="all"||e.stageId===s))}
+const auth = firebase.auth();
+const db = firebase.firestore();
+const provider = new firebase.auth.GoogleAuthProvider();
+const $ = id => document.getElementById(id);
+const STAGES = [
+  {id:"slime",name:"森のスライム"},
+  {id:"goblin",name:"ドリフトゴブリン"},
+  {id:"ghost",name:"湯けむりゴースト"},
+  {id:"food",name:"フードロスモンスター"},
+  {id:"star",name:"星降るウィザード"},
+  {id:"wolf",name:"雪原のホワイトウルフ"},
+  {id:"golem",name:"森のゴーレム"},
+  {id:"boss",name:"闇の魔王ノクス"}
+];
+const stageNames = Object.fromEntries(STAGES.map(stage => [stage.id,stage.name]));
+let events = [];
+let unsubscribeEvents = null;
 
-function render(){
-  const list=filtered(),starts=list.filter(x=>x.type==="stage_start"),answers=list.filter(x=>x.type==="question_answer"),
-  correct=answers.filter(x=>x.correct===true),clears=list.filter(x=>x.type==="stage_clear");
-  $("stageStarts").textContent=starts.length;$("answers").textContent=answers.length;$("correctAnswers").textContent=correct.length;
-  $("accuracy").textContent=answers.length?Math.round(correct.length/answers.length*100)+"%":"0%";$("stageClears").textContent=clears.length;
+function setMessage(text,cls=""){
+  const message = $("message");
+  message.textContent = text;
+  message.className = cls;
+  message.setAttribute("role",cls === "bad" ? "alert" : "status");
+}
 
-  const qm={};
-  answers.forEach(x=>{const k=[x.stageId||"",x.difficulty||"",x.questionText||""].join("||");
-    if(!qm[k])qm[k]={stageId:x.stageId||"",difficulty:x.difficulty||"",questionText:x.questionText||"",answers:0,correct:0};
-    qm[k].answers++;if(x.correct)qm[k].correct++;
+function escapeHtml(value){
+  return String(value).replace(/[&<>"']/g,char => ({
+    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
+  })[char]);
+}
+
+function rateClass(rate,hasData=true){
+  if(!hasData) return "neutral";
+  return rate >= 80 ? "good" : rate >= 60 ? "warn" : "bad";
+}
+
+function normalizeEventType(event){
+  if(event && typeof event.eventType === "string" && event.eventType.trim()){
+    return event.eventType.trim();
+  }
+  const legacyType = event && typeof event.type === "string" ? event.type.trim() : "";
+  if(legacyType === "stage_start") return "battle_start";
+  if(legacyType === "question_answer") return "answer";
+  if(legacyType === "stage_clear") return event.stageId === "boss" ? "boss_clear" : "enemy_clear";
+  return legacyType;
+}
+
+function eventDate(event){
+  const createdAt = event && event.createdAt;
+  if(createdAt && typeof createdAt.toDate === "function"){
+    const date = createdAt.toDate();
+    return Number.isNaN(date.getTime()) ? null : date;
+  }
+  if(createdAt instanceof Date && !Number.isNaN(createdAt.getTime())) return createdAt;
+  if(typeof createdAt === "string" || typeof createdAt === "number"){
+    const date = new Date(createdAt);
+    if(!Number.isNaN(date.getTime())) return date;
+  }
+  const clientMs = Number(event && event.createdAtClientMs);
+  if(Number.isFinite(clientMs) && clientMs > 0){
+    const date = new Date(clientMs);
+    if(!Number.isNaN(date.getTime())) return date;
+  }
+  return null;
+}
+
+function playerKey(event){
+  const uid = typeof event.uid === "string" ? event.uid.trim() : "";
+  if(uid && uid.toLowerCase() !== "anonymous") return "uid:" + uid;
+  const playerId = typeof event.playerId === "string" ? event.playerId.trim() : "";
+  if(playerId) return "playerId:" + playerId;
+  const playerName = typeof event.playerName === "string" ? event.playerName.trim() : "";
+  if(playerName) return "playerName:" + playerName;
+  return "event:" + String(event.eventId || event.id || "unknown");
+}
+
+function isCorrect(event){
+  return event.correct === true || event.correct === "true";
+}
+
+function difficultyLabel(value){
+  if(value === "adult") return "大人";
+  if(value === "kids") return "キッズ";
+  return value || "-";
+}
+
+function periodMatches(event,period){
+  if(period === "all") return true;
+  const date = eventDate(event);
+  if(!date) return false;
+  const now = new Date();
+  if(period === "today"){
+    const start = new Date(now.getFullYear(),now.getMonth(),now.getDate());
+    return date >= start && date <= now;
+  }
+  if(period === "7days"){
+    const startMs = now.getTime() - 7 * 24 * 60 * 60 * 1000;
+    return date.getTime() >= startMs && date <= now;
+  }
+  return true;
+}
+
+function applyFilters(){
+  const period = $("periodFilter").value;
+  const difficulty = $("difficultyFilter").value;
+  const stageId = $("stageFilter").value;
+  const baseEvents = events.filter(event =>
+    periodMatches(event,period) &&
+    (difficulty === "all" || event.difficulty === difficulty)
+  );
+
+  if(stageId === "all"){
+    return {baseEvents,cohortEvents:baseEvents,tableEvents:baseEvents,cohortKeys:null};
+  }
+
+  const stageEvents = baseEvents.filter(event => event.stageId === stageId);
+  const cohortKeys = new Set(stageEvents.map(playerKey));
+  const cohortEvents = baseEvents.filter(event => cohortKeys.has(playerKey(event)));
+  return {baseEvents,cohortEvents,tableEvents:stageEvents,cohortKeys};
+}
+
+function createPlayerState(key){
+  return {
+    key,
+    explicitStart:false,
+    hadBattle:false,
+    clearStages:new Set(),
+    explicitAllCrystals:false,
+    explicitBossUnlock:false,
+    bossBattle:false,
+    explicitBossClear:false,
+    explicitCertificate:false,
+    explicitComplete:false,
+    hasCertificateCode:false,
+    completedField:false,
+    maxCrystals:0,
+    started:false,
+    oneClear:false,
+    allCrystals:false,
+    bossUnlock:false,
+    bossClear:false,
+    certificate:false,
+    complete:false
+  };
+}
+
+function buildPlayerStates(list){
+  const states = new Map();
+  list.forEach(event => {
+    const key = playerKey(event);
+    if(!states.has(key)) states.set(key,createPlayerState(key));
+    const state = states.get(key);
+    const type = normalizeEventType(event);
+    const crystals = Number(event.crystals);
+    if(Number.isFinite(crystals)) state.maxCrystals = Math.max(state.maxCrystals,crystals);
+
+    if(type === "game_start") state.explicitStart = true;
+    if(type === "battle_start"){
+      state.hadBattle = true;
+      if(event.stageId === "boss") state.bossBattle = true;
+    }
+    if(type === "enemy_clear" && event.stageId) state.clearStages.add(event.stageId);
+    if(type === "boss_clear"){
+      state.explicitBossClear = true;
+      state.clearStages.add("boss");
+    }
+    if(type === "all_crystals_get") state.explicitAllCrystals = true;
+    if(type === "boss_unlock") state.explicitBossUnlock = true;
+    if(type === "certificate_issued") state.explicitCertificate = true;
+    if(type === "game_complete") state.explicitComplete = true;
+    if(event.certificateCode) state.hasCertificateCode = true;
+    if(event.completed === true || event.completed === "true") state.completedField = true;
   });
-  $("questionRows").innerHTML=Object.values(qm).sort((a,b)=>(a.correct/a.answers)-(b.correct/b.answers)).map(x=>{
-    const r=x.answers?Math.round(x.correct/x.answers*100):0;
-    return `<tr><td>${stageNames[x.stageId]||x.stageId}</td><td>${x.difficulty==="adult"?"大人":"キッズ"}</td><td>${escapeHtml(x.questionText)}</td><td>${x.answers}</td><td>${x.correct}</td><td class="${rateClass(r)}">${r}%</td></tr>`;
-  }).join("")||'<tr><td colspan="6">回答データがありません。</td></tr>';
 
-  $("stageRows").innerHTML=Object.keys(stageNames).map(id=>{
-    const ss=starts.filter(x=>x.stageId===id),cc=clears.filter(x=>x.stageId===id),r=ss.length?Math.round(cc.length/ss.length*100):0;
-    const ds=cc.map(x=>Number(x.durationSeconds||0)).filter(x=>x>0),avg=ds.length?Math.round(ds.reduce((a,b)=>a+b,0)/ds.length):0;
-    return `<tr><td>${stageNames[id]}</td><td>${ss.length}</td><td>${cc.length}</td><td class="${rateClass(r)}">${r}%</td><td>${avg?avg+"秒":"-"}</td></tr>`;
+  states.forEach(state => {
+    state.oneClear = state.clearStages.size > 0;
+    state.allCrystals = state.explicitAllCrystals || state.maxCrystals >= 7;
+    state.bossClear = state.explicitBossClear;
+    state.bossUnlock = state.explicitBossUnlock || state.bossBattle || state.allCrystals;
+    state.certificate = state.explicitCertificate || state.hasCertificateCode;
+    state.complete = state.explicitComplete || state.completedField;
+
+    if(state.complete) state.certificate = true;
+    if(state.certificate) state.bossClear = true;
+    if(state.bossClear) state.bossUnlock = true;
+    if(state.bossUnlock) state.allCrystals = true;
+    if(state.allCrystals) state.oneClear = true;
+    state.started = state.explicitStart || state.hadBattle || state.oneClear;
+  });
+  return states;
+}
+
+function renderFilterStatus(view,states){
+  const stageId = $("stageFilter").value;
+  const legacyCount = view.cohortEvents.filter(event => !event.eventType).length;
+  const missingDateCount = view.cohortEvents.filter(event => !eventDate(event)).length;
+  const cohortText = stageId === "all"
+    ? "全プレイヤー"
+    : (stageNames[stageId] || stageId) + " 接触コホート";
+  $("filterStatus").textContent =
+    cohortText + "：集計対象 " + view.cohortEvents.length + "件／" + states.size +
+    "プレイヤー（旧ログ " + legacyCount + "件、日時不明 " + missingDateCount + "件）";
+}
+
+function renderSummary(list,states){
+  const values = Array.from(states.values());
+  $("gameStartPlayers").textContent = values.filter(state => state.started).length;
+  $("clearPlayers").textContent = values.filter(state => state.oneClear).length;
+  $("allCrystalPlayers").textContent = values.filter(state => state.allCrystals).length;
+  $("bossClearPlayers").textContent = values.filter(state => state.bossClear).length;
+  $("certificatePlayers").textContent = values.filter(state => state.certificate).length;
+  $("resetCount").textContent = list.filter(event => normalizeEventType(event) === "game_reset").length;
+}
+
+function renderLegacyMetrics(list){
+  const starts = list.filter(event => normalizeEventType(event) === "battle_start");
+  const answers = list.filter(event => normalizeEventType(event) === "answer");
+  const correct = answers.filter(isCorrect);
+  const clears = list.filter(event => {
+    const type = normalizeEventType(event);
+    return type === "enemy_clear" || type === "boss_clear";
+  });
+  const accuracy = answers.length ? Math.round(correct.length / answers.length * 100) : 0;
+  $("stageStarts").textContent = starts.length;
+  $("answers").textContent = answers.length;
+  $("correctAnswers").textContent = correct.length;
+  $("accuracy").textContent = accuracy + "%";
+  $("stageClears").textContent = clears.length;
+}
+
+function renderFunnel(states){
+  const values = Array.from(states.values());
+  const steps = [
+    {label:"冒険開始",count:values.filter(state => state.started).length},
+    {label:"敵を1体以上撃破",count:values.filter(state => state.oneClear).length},
+    {label:"7クリスタル到達",count:values.filter(state => state.allCrystals).length},
+    {label:"ラスボス解放",count:values.filter(state => state.bossUnlock).length},
+    {label:"ラスボス撃破",count:values.filter(state => state.bossClear).length},
+    {label:"認定証発行",count:values.filter(state => state.certificate).length},
+    {label:"ゲーム完全クリア",count:values.filter(state => state.complete).length}
+  ];
+  const startCount = steps[0].count;
+  $("funnelRows").innerHTML = steps.map((step,index) => {
+    const previous = index === 0 ? step.count : steps[index - 1].count;
+    const previousRate = index === 0 ? 100 : (previous ? Math.round(step.count / previous * 100) : 0);
+    const startRate = startCount ? Math.round(step.count / startCount * 100) : 0;
+    const width = Math.max(0,Math.min(100,startRate));
+    const detail = index === 0 ? "基準" : "前段比 " + previousRate + "%／開始比 " + startRate + "%";
+    return '<div class="funnel-row">' +
+      '<div class="funnel-label">' + escapeHtml(step.label) + '</div>' +
+      '<div class="funnel-track" role="progressbar" aria-label="' + escapeHtml(step.label) +
+      '" aria-valuemin="0" aria-valuemax="' + startCount + '" aria-valuenow="' + step.count + '">' +
+      '<div class="funnel-bar" style="width:' + width + '%"></div></div>' +
+      '<div class="funnel-value"><strong>' + step.count + '人</strong><br><span>' + detail + '</span></div>' +
+      '</div>';
   }).join("");
 }
 
-$("loginBtn").onclick=()=>auth.signInWithPopup(provider).catch(e=>setMessage(e.message,"bad"));
-$("logoutBtn").onclick=()=>auth.signOut();$("difficultyFilter").onchange=render;$("stageFilter").onchange=render;
+function renderDropoffs(states){
+  const values = Array.from(states.values());
+  $("dropBeforeClear").textContent = values.filter(state => state.started && !state.oneClear).length;
+  $("dropBeforeCrystals").textContent = values.filter(state => state.oneClear && !state.allCrystals).length;
+  $("dropBeforeBossClear").textContent = values.filter(state => state.allCrystals && !state.bossClear).length;
+  $("dropBeforeCertificate").textContent = values.filter(state => state.bossClear && !state.certificate).length;
+}
 
-auth.onAuthStateChanged(user=>{
-  if(!user){$("loginBtn").hidden=false;$("logoutBtn").hidden=true;$("dashboard").hidden=true;setMessage("管理者ログインが必要です。");return}
-  if((user.email||"").toLowerCase()!==ADMIN_EMAIL.toLowerCase()){
-    $("loginBtn").hidden=true;$("logoutBtn").hidden=false;$("dashboard").hidden=true;setMessage("このGoogleアカウントには管理権限がありません。","bad");return
+function renderStageAnalysis(list){
+  const selectedStage = $("stageFilter").value;
+  const stages = selectedStage === "all" ? STAGES : STAGES.filter(stage => stage.id === selectedStage);
+  $("stageRows").innerHTML = stages.map(stage => {
+    const stageEvents = list.filter(event => event.stageId === stage.id);
+    const starts = stageEvents.filter(event => normalizeEventType(event) === "battle_start");
+    const clears = stageEvents.filter(event => {
+      const type = normalizeEventType(event);
+      return stage.id === "boss" ? type === "boss_clear" : type === "enemy_clear";
+    });
+    const answers = stageEvents.filter(event => normalizeEventType(event) === "answer");
+    const correct = answers.filter(isCorrect);
+    const clearRate = starts.length ? Math.round(clears.length / starts.length * 100) : 0;
+    const answerRate = answers.length ? Math.round(correct.length / answers.length * 100) : 0;
+    const crystalValues = starts.map(event => Number(event.crystals)).filter(Number.isFinite);
+    const averageCrystals = crystalValues.length
+      ? (crystalValues.reduce((sum,value) => sum + value,0) / crystalValues.length).toFixed(1)
+      : "-";
+    const durations = clears.map(event => Number(event.durationSeconds)).filter(value => Number.isFinite(value) && value > 0);
+    const averageDuration = durations.length
+      ? Math.round(durations.reduce((sum,value) => sum + value,0) / durations.length) + "秒"
+      : "-";
+    return "<tr>" +
+      "<td><code>" + escapeHtml(stage.id) + "</code></td>" +
+      "<td>" + escapeHtml(stage.name) + "</td>" +
+      '<td class="num">' + starts.length + "</td>" +
+      '<td class="num">' + clears.length + "</td>" +
+      '<td class="num ' + rateClass(clearRate,starts.length > 0) + '">' + clearRate + "%</td>" +
+      '<td class="num">' + answers.length + "</td>" +
+      '<td class="num ' + rateClass(answerRate,answers.length > 0) + '">' + answerRate + "%</td>" +
+      '<td class="num">' + averageCrystals + "</td>" +
+      '<td class="num">' + averageDuration + "</td>" +
+      "</tr>";
+  }).join("");
+}
+
+function renderQuestionAnalysis(list){
+  const answers = list.filter(event => normalizeEventType(event) === "answer");
+  const groups = new Map();
+  answers.forEach(event => {
+    const questionNumber = event.questionNumber ?? "";
+    const questionText = event.questionText || "";
+    const key = [event.stageId || "",event.difficulty || "",questionNumber,questionText].join("||");
+    if(!groups.has(key)){
+      groups.set(key,{
+        stageId:event.stageId || "",
+        difficulty:event.difficulty || "",
+        questionNumber,
+        questionText,
+        answers:0,
+        correct:0
+      });
+    }
+    const group = groups.get(key);
+    group.answers += 1;
+    if(isCorrect(event)) group.correct += 1;
+  });
+
+  const rows = Array.from(groups.values()).sort((a,b) => {
+    const rateA = a.answers ? a.correct / a.answers : 0;
+    const rateB = b.answers ? b.correct / b.answers : 0;
+    return rateA - rateB ||
+      String(a.stageId).localeCompare(String(b.stageId)) ||
+      String(a.difficulty).localeCompare(String(b.difficulty)) ||
+      Number(a.questionNumber || 0) - Number(b.questionNumber || 0);
+  });
+
+  $("questionRows").innerHTML = rows.map(row => {
+    const rate = row.answers ? Math.round(row.correct / row.answers * 100) : 0;
+    const questionNumber = row.questionNumber === "" ? "-" : row.questionNumber;
+    return "<tr>" +
+      "<td>" + escapeHtml(stageNames[row.stageId] || row.stageId || "-") + "</td>" +
+      "<td>" + escapeHtml(difficultyLabel(row.difficulty)) + "</td>" +
+      '<td class="num">' + escapeHtml(questionNumber) + "</td>" +
+      "<td>" + escapeHtml(row.questionText || "-") + "</td>" +
+      '<td class="num">' + row.answers + "</td>" +
+      '<td class="num">' + row.correct + "</td>" +
+      '<td class="num ' + rateClass(rate,row.answers > 0) + '">' + rate + "%</td>" +
+      "</tr>";
+  }).join("") || '<tr><td class="empty-cell" colspan="7">回答データがありません。</td></tr>';
+}
+
+function render(){
+  const view = applyFilters();
+  const states = buildPlayerStates(view.cohortEvents);
+  renderFilterStatus(view,states);
+  renderSummary(view.cohortEvents,states);
+  renderLegacyMetrics(view.cohortEvents);
+  renderFunnel(states);
+  renderDropoffs(states);
+  renderStageAnalysis(view.tableEvents);
+  renderQuestionAnalysis(view.tableEvents);
+}
+
+function resetFilters(){
+  $("periodFilter").value = "all";
+  $("difficultyFilter").value = "all";
+  $("stageFilter").value = "all";
+  render();
+}
+
+function stopEventListener(){
+  if(typeof unsubscribeEvents === "function") unsubscribeEvents();
+  unsubscribeEvents = null;
+}
+
+$("loginBtn").onclick = () => auth.signInWithPopup(provider).catch(error => setMessage(error.message,"bad"));
+$("logoutBtn").onclick = () => auth.signOut();
+$("periodFilter").onchange = render;
+$("difficultyFilter").onchange = render;
+$("stageFilter").onchange = render;
+$("resetFiltersBtn").onclick = resetFilters;
+
+auth.onAuthStateChanged(user => {
+  stopEventListener();
+  if(!user){
+    events = [];
+    $("loginBtn").hidden = false;
+    $("logoutBtn").hidden = true;
+    $("dashboard").hidden = true;
+    setMessage("管理者ログインが必要です。");
+    return;
   }
-  $("loginBtn").hidden=true;$("logoutBtn").hidden=false;$("dashboard").hidden=false;setMessage(user.email+" でログイン中","good");
-  db.collection("gameEvents").onSnapshot(s=>{events=s.docs.map(d=>({id:d.id,...d.data()}));render()},e=>setMessage("データ読込エラー："+e.message,"bad"));
+  if((user.email || "").toLowerCase() !== ADMIN_EMAIL.toLowerCase()){
+    events = [];
+    $("loginBtn").hidden = true;
+    $("logoutBtn").hidden = false;
+    $("dashboard").hidden = true;
+    setMessage("このGoogleアカウントには管理権限がありません。","bad");
+    return;
+  }
+
+  $("loginBtn").hidden = true;
+  $("logoutBtn").hidden = false;
+  $("dashboard").hidden = false;
+  setMessage("gameEvents を読み込んでいます。");
+  unsubscribeEvents = db.collection("gameEvents").onSnapshot(snapshot => {
+    events = snapshot.docs.map(document => ({id:document.id,...document.data()}));
+    render();
+    setMessage(user.email + " でログイン中（" + events.length + "件をリアルタイム監視）","good");
+  },error => {
+    setMessage("Firestoreデータ読込エラー：" + error.message,"bad");
+    render();
+  });
 });
 </script>
 </body>
